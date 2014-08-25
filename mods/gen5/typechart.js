@@ -1,4 +1,4 @@
-exports.BattleTypeChart = {
+module.exports = {
 	"Electric": {
 		inherit: true,
 		damageTaken: {

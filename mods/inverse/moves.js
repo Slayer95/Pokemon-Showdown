@@ -1,4 +1,4 @@
-exports.BattleMovedex = {
+module.exports = {
 	spikes: {
 		inherit: true,
 		effect: {

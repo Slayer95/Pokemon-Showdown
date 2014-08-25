@@ -1,4 +1,4 @@
-exports.BattleMovedex = {
+module.exports = {
 	/******************************************************************
 	Perfect accuracy moves:
 	- base power increased to 90

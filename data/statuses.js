@@ -1,4 +1,4 @@
-exports.BattleStatuses = {
+module.exports = {
 	brn: {
 		effectType: 'Status',
 		onStart: function (target, source, sourceEffect) {

@@ -1,4 +1,4 @@
-exports.BattleFormats = {
+module.exports = {
 	pokemon: {
 		effectType: 'Banlist',
 		validateSet: function (set, format) {

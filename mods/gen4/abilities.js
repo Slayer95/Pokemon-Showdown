@@ -1,4 +1,4 @@
-exports.BattleAbilities = {
+module.exports = {
 	"angerpoint": {
 		inherit: true,
 		desc: "If this Pokemon, or its Substitute, is struck by a Critical Hit, its Attack is boosted to six stages.",

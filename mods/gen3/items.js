@@ -1,4 +1,4 @@
-exports.BattleItems = {
+module.exports = {
 	"blackbelt": {
 		inherit: true,
 		onBasePower: function (basePower, user, target, move) {

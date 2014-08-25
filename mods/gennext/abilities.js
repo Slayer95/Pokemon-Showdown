@@ -1,4 +1,4 @@
-exports.BattleAbilities = {
+module.exports = {
 	"drizzle": {
 		inherit: true,
 		onStart: function (source) {

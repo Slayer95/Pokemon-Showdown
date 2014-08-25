@@ -140,13 +140,19 @@ process.on('message', function (message) {
 
 BattlePokemon = (function () {
 	function BattlePokemon(set, side) {
+		var BattlePokemonScripts = side.battle.data.Scripts.BattlePokemon;
+		if (BattlePokemonScripts) {
+			for (var i in BattlePokemonScripts) {
+				this[i] = BattlePokemonScripts[i];
+			}
+		}
 		this.side = side;
 		this.battle = side.battle;
 		if (typeof set === 'string') set = {name: set};
 
 		// "pre-bound" functions for nicer syntax (avoids repeated use of `bind`)
-		this.getHealth = BattlePokemon.getHealth.bind(this);
-		this.getDetails = BattlePokemon.getDetails.bind(this);
+		this.getHealth = this.getHealth || BattlePokemon.getHealth.bind(this);
+		this.getDetails = this.getDetails || BattlePokemon.getDetails.bind(this);
 
 		this.set = set;
 
@@ -1214,6 +1220,12 @@ BattlePokemon = (function () {
 
 BattleSide = (function () {
 	function BattleSide(name, battle, n, team) {
+		var BattleSideScripts = battle.data.Scripts.BattleSide;
+		if (BattleSideScripts) {
+			for (var i in BattleSideScripts) {
+				this[i] = BattleSideScripts[i];
+			}
+		}
 		this.battle = battle;
 		this.n = n;
 		this.name = name;

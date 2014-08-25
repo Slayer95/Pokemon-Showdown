@@ -1,7 +1,7 @@
 /**
  * Gen 2 had no abilities whatsoever.
  */
-exports.BattleAbilities = {
+module.exports = {
 	"None": {
 		desc: "This Pokemon has no ability.",
 		shortDesc: "This Pokemon has no ability.",

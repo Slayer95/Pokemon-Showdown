@@ -1,4 +1,4 @@
-exports.BattleItems = {
+module.exports = {
 	"burndrive": {
 		id: "burndrive",
 		name: "Burn Drive",

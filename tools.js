@@ -46,9 +46,7 @@ module.exports = (function () {
 			dataTypes.forEach(function (dataType) {
 				try {
 					var path = './data/' + dataFiles[dataType];
-					if (fs.existsSync(path)) {
-						data[dataType] = require(path)['Battle' + dataType];
-					}
+					if (fs.existsSync(path)) data[dataType] = require(path);
 				} catch (e) {
 					console.log('CRASH LOADING DATA: ' + e.stack);
 				}
@@ -75,9 +73,7 @@ module.exports = (function () {
 			dataTypes.forEach(function (dataType) {
 				try {
 					var path = './mods/' + mod + '/' + dataFiles[dataType];
-					if (fs.existsSync(path)) {
-						data[dataType] = require(path)['Battle' + dataType];
-					}
+					if (fs.existsSync(path)) data[dataType] = require(path);
 				} catch (e) {
 					console.log('CRASH LOADING MOD DATA: ' + e.stack);
 				}
@@ -140,7 +136,7 @@ module.exports = (function () {
 
 			mods.forEach(function (mod) {
 				if (fs.existsSync('./mods/' + mod + '/scripts.js')) {
-					parentMods[mod] = require('./mods/' + mod + '/scripts.js').BattleScripts.inherit || 'base';
+					parentMods[mod] = require('./mods/' + mod + '/scripts.js').inherit || 'base';
 				} else {
 					parentMods[mod] = 'base';
 				}
@@ -901,8 +897,10 @@ module.exports = (function () {
 	 * Install our Tools functions into the battle object
 	 */
 	Tools.prototype.install = function (battle) {
-		for (var i in this.data.Scripts) {
-			battle[i] = this.data.Scripts[i];
+		var BattleScripts = this.data.Scripts.Battle;
+		if (!BattleScripts) return;
+		for (var i in BattleScripts) {
+			battle[i] = BattleScripts[i];
 		}
 	};
 

@@ -1,4 +1,4 @@
-exports.BattleFormatsData = {
+module.exports = {
 	bulbasaur: {
 		eventPokemon: [
 			{"generation":2,"level":5,"moves":["tackle","growl","ancientpower"]}

@@ -1,4 +1,4 @@
-exports.BattleMovedex = {
+module.exports = {
 	"absorb": {
 		num: 71,
 		accuracy: 100,

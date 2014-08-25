@@ -1,4 +1,4 @@
-exports.BattleStatuses = {
+module.exports = {
 	frz: {
 		effectType: 'Status',
 		onStart: function (target) {

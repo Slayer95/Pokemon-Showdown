@@ -1,4 +1,4 @@
-exports.BattleMovedex = {
+module.exports = {
 	acupressure: {
 		inherit: true,
 		desc: "Raises a random stat by 2 stages as long as the stat is not already at stage 6. The user can choose to use this move on itself or an ally. Fails if no stat stage can be raised or if the user or ally has a Substitute. This move ignores Protect and Detect.",
@@ -674,8 +674,8 @@ exports.BattleMovedex = {
 		inherit: true,
 		onHit: function (target) {
 			var moves = [];
-			for (var i in exports.BattleMovedex) {
-				var move = exports.BattleMovedex[i];
+			for (var i in this.data.Movedex) {
+				var move = this.data.Movedex[i];
 				if (i !== move.id) continue;
 				if (move.isNonstandard) continue;
 				var noMetronome = {

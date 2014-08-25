@@ -5,7 +5,7 @@
  * and I want the mod to work with no Client changes and the least possible
  * non-mod changes.
  */
-exports.BattleAbilities = {
+module.exports = {
 	"None": {
 		desc: "This Pokemon has no ability.",
 		shortDesc: "This Pokemon has no ability.",

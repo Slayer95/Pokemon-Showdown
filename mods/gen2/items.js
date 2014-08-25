@@ -1,4 +1,4 @@
-exports.BattleItems = {
+module.exports = {
 	amuletcoin: {
 		id: "amuletcoin",
 		name: "Amulet Coin",

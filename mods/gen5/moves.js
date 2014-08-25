@@ -1,4 +1,4 @@
-exports.BattleMovedex = {
+module.exports = {
 	acidarmor: {
 		inherit: true,
 		pp: 40
@@ -465,8 +465,8 @@ exports.BattleMovedex = {
 		inherit: true,
 		onHit: function (target) {
 			var moves = [];
-			for (var i in exports.BattleMovedex) {
-				var move = exports.BattleMovedex[i];
+			for (var i in this.data.Movedex) {
+				var move = this.data.Movedex[i];
 				if (i !== move.id) continue;
 				if (move.isNonstandard) continue;
 				var noMetronome = {

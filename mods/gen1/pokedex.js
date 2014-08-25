@@ -1,4 +1,4 @@
-exports.BattlePokedex = {
+module.exports = {
 missingno:{species:"Missingno.",types:["Bird","Normal"],gender:"N",baseStats:{hp:33,atk:136,def:0,spa:6,spd:6,spe:29},abilities:{},heightm:3,weightkg:1590.8,color:"Gray"},
 bulbasaur:{num:1,species:"Bulbasaur",types:["Grass","Poison"],gender:"N",baseStats:{hp:45,atk:49,def:49,spa:65,spd:65,spe:45},abilities:{},heightm:0.7,weightkg:6.9,color:"Green",evos:["ivysaur"]},
 ivysaur:{num:2,species:"Ivysaur",types:["Grass","Poison"],gender:"N",baseStats:{hp:60,atk:62,def:63,spa:80,spd:80,spe:60},abilities:{},heightm:1,weightkg:13,color:"Green",prevo:"bulbasaur",evos:["venusaur"],evoLevel:16},

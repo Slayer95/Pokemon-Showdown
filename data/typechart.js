@@ -1,4 +1,4 @@
-exports.BattleTypeChart = {
+module.exports = {
 	"Bug": {
 		damageTaken: {
 			"Bug": 0,

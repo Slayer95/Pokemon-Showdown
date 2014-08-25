@@ -1,4 +1,4 @@
-exports.BattleItems = {
+module.exports = {
 	"abomasite": {
 		id: "abomasite",
 		name: "Abomasite",

@@ -1,6 +1,5 @@
-exports.BattleScripts = {
+module.exports = {
 	inherit: 'gen5',
-	gen: 3,
 	init: function () {
 		for (var i in this.data.Pokedex) {
 			delete this.data.Pokedex[i].abilities['H'];
@@ -14,5 +13,9 @@ exports.BattleScripts = {
 				this.modData('Movedex', i).category = newCategory;
 			}
 		}
+	},
+	Battle: {
+		inherit: true,
+		gen: 3
 	}
 };

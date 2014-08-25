@@ -1,4 +1,4 @@
-exports.BattleStatuses = {
+module.exports = {
 	slp: {
 		effectType: 'Status',
 		onStart: function (target) {

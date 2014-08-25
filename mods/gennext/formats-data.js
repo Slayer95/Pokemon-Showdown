@@ -1,4 +1,4 @@
-exports.BattleFormatsData = {
+module.exports = {
 	blaziken: {
 		inherit: true,
 		tier: 'OU'

@@ -1,4 +1,4 @@
-exports.BattleFormatsData = {
+module.exports = {
 	missingno: {
 		isNonstandard: true,
 		tier: ""

@@ -1,4 +1,4 @@
-exports.BattlePokedex = {
+module.exports = {
 	chansey: {
 		inherit: true,
 		prevo: ''

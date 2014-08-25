@@ -1,4 +1,4 @@
-exports.BattleFormatsData = {
+module.exports = {
 	bulbasaur: {
 		randomBattleMoves: ["sleeppowder","gigadrain","growth","hiddenpowerfire","hiddenpowerice","sludgebomb","swordsdance","powerwhip","leechseed","synthesis"],
 		eventPokemon: [

@@ -1,4 +1,4 @@
-exports.BattleAliases = {
+module.exports = {
 	// formats
 	"randbats": "Random Battle",
 	"overused": "OU",

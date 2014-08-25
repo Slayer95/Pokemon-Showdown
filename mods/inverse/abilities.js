@@ -1,4 +1,4 @@
-exports.BattleAbilities = {
+module.exports = {
 	arenatrap: {
 		inherit: true,
 		onFoeModifyPokemon: function (pokemon) {

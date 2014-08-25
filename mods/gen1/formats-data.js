@@ -1,4 +1,4 @@
-exports.BattleFormatsData = {
+module.exports = {
 	bulbasaur: {
 		tier: "LC"
 	},

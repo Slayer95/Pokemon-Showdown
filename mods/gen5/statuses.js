@@ -1,4 +1,4 @@
-exports.BattleStatuses = {
+module.exports = {
 	brn: {
 		inherit: true,
 		onBasePower: function (basePower, attacker, defender, move) {

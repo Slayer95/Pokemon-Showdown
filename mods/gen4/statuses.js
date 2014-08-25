@@ -1,4 +1,4 @@
-exports.BattleStatuses = {
+module.exports = {
 	par: {
 		inherit: true,
 		onBeforeMovePriority: 2,

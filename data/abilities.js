@@ -39,7 +39,7 @@ Ratings and how they work:
 
 */
 
-exports.BattleAbilities = {
+module.exports = {
 	"adaptability": {
 		desc: "This Pokemon's attacks that receive STAB (Same Type Attack Bonus) are increased from 50% to 100%.",
 		shortDesc: "This Pokemon's same-type attack bonus (STAB) is increased from 1.5x to 2x.",

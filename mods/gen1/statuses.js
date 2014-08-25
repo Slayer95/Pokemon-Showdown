@@ -7,7 +7,7 @@
  * separated as volatile statuses that are applied on switch in, removed
  * under certain conditions and re-applied under other conditions.
  */
-exports.BattleStatuses = {
+module.exports = {
 	brn: {
 		effectType: 'Status',
 		onStart: function (target) {

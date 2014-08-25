@@ -1,4 +1,4 @@
-exports.BattlePokedex = {
+module.exports = {
 	rotomheat: {
 		inherit: true,
 		types: ["Electric", "Ghost"]

@@ -1,4 +1,4 @@
-exports.BattleAbilities = {
+module.exports = {
 	"cutecharm": {
 		inherit: true,
 		onAfterDamage: function (damage, target, source, move) {

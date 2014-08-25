@@ -1,4 +1,4 @@
-exports.BattleItems = {
+module.exports = {
 	"choiceband": {
 		inherit: true,
 		onStart: function () { }

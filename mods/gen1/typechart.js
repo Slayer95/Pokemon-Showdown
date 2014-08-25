@@ -5,7 +5,7 @@
  * Ice was neutral to fire
  * Psychic was immune to ghost
  */
-exports.BattleTypeChart = {
+module.exports = {
 	"Bug": {
 		damageTaken: {
 			"Bug": 0,

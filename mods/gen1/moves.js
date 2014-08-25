@@ -2,7 +2,7 @@
  * A lot of Gen 1 moves have to be updated due to different mechanics.
  * Some moves have had major changes, such as Bite's typing.
  */
-exports.BattleMovedex = {
+module.exports = {
 	acid: {
 		inherit: true,
 		target: "normal"
@@ -524,8 +524,8 @@ exports.BattleMovedex = {
 		inherit: true,
 		onHit: function (target) {
 			var moves = [];
-			for (var i in exports.BattleMovedex) {
-				var move = exports.BattleMovedex[i];
+			for (var i in this.data.Movedex) {
+				var move = this.data.Movedex[i];
 				if (i !== move.id) continue;
 				if (move.isNonstandard) continue;
 				var noMetronome = {

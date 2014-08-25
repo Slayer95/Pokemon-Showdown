@@ -1,4 +1,4 @@
-exports.BattleAbilities = {
+module.exports = {
 	"frisk": {
 		inherit: true,
 		desc: "When this Pokemon enters the field, it identifies the opponent's held item; in double battles, the held item of an unrevealed, randomly selected opponent is identified.",
