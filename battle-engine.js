@@ -2505,6 +2505,7 @@ Battle = (function () {
 			for (var j = 0; j < this.sides[i].active.length; j++) {
 				var pokemon = this.sides[i].active[j];
 				if (!pokemon) continue;
+				pokemon.tieOrder = 0;
 				pokemon.moveThisTurn = '';
 				pokemon.usedItemThisTurn = false;
 				pokemon.newlySwitched = false;
