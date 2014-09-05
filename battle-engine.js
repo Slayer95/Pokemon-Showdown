@@ -3196,28 +3196,17 @@ Battle = (function () {
 		}
 		if (!noSort) {
 			this.sortQueue();
-			this.queue.sort(Battle.comparePriority);
-			this.debug('normally sorted queue: '+this.queue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
 		}
 	};
 	Battle.prototype.sortQueue = function () {
-		var testQueue = this.queue.slice();
-		this.debug('Sorting '+testQueue.length+' decisions. Unsorted queue: '+testQueue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
-		var queue = testQueue || [];
+		var queue = this.queue;
 		var sortedQueue = [];
-		//  if (true) return;
-		sortedQueue.push(testQueue.shift()); // Add the first element to the sorted queue.
-		this.debug('Sort decision: '+sortedQueue[0].choice+(sortedQueue[0].pokemon?' '+sortedQueue[0].pokemon.toString().substr(0,3):''));
-		this.debug('Remaining to sort: '+testQueue.length);
-		while (testQueue.length) { // While there are more elements... 
-			var decision = testQueue.shift(); // Remove the next element.
-			this.debug('Sort decision: '+decision.choice+(decision.pokemon?' '+decision.pokemon.toString().substr(0,3):''));
-			this.debug('Remaining to sort: '+testQueue.length);
+		sortedQueue.push(queue.shift()); // Add the first element to the sorted queue.
+		while (queue.length) { // While there are more elements... 
+			var decision = queue.shift(); // Remove the next element.
 			if (!decision.priority) decision.priority = 0;
 			if (!decision.subPriority) decision.subPriority = 0;
 			decision.speed = decision.speed || (decision.pokemon ? decision.pokemon.speed : 0);
-			// Not sure if I wanna care about tie order in THIS sort.
-			// decision.tieOrder = decision.tieOrder || (decision.pokemon ? decision.pokemon.tieOrder : 0);
 			for (var i = sortedQueue.length-1; i > -1; i--) {
 				var sortedDecision = (Array.isArray(sortedQueue[i]) ? sortedQueue[i][0] : sortedQueue[i]);
 				if (decision.priority > sortedDecision.priority) {
@@ -3247,35 +3236,23 @@ Battle = (function () {
 					sortedQueue.splice(i+1, 0, decision);
 					break;
 				}
-				/* Read above
-				if (decision.tieOrder > sortedDecision.tieOrder) continue;
-				if (decision.tieOrder < sortedDecision.tieOrder) {
-					sortedQueue.splice(i+1, 0, decision);
-					break;
-				}
-				*/
+				// Speed Tie
 				if (Array.isArray(sortedQueue[i])) sortedQueue[i].push(decision);
 				else sortedQueue[i] = [sortedQueue[i], decision];
 			}
 		}
-		this.debug('Semi-sorted queue: '+sortedQueue.map(function(o){
-			if (!Array.isArray(o)) return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'');
-			else return '['+o.map(function(d){return d.choice+(d.pokemon?' '+d.pokemon.toString().substr(0,3):'')}).join(', ')+']'
-		}));
 		// Resolve speed ties
 		for (var i = 0; i < sortedQueue.length; i++) {
 			if (!Array.isArray(sortedQueue[i])) {
-				testQueue.push(sortedQueue[i]);
+				queue.push(sortedQueue[i]);
 				continue;
 			}
 			var decisions = sortedQueue[i];
 			if (!decisions[0].pokemon) {
-				testQueue.push.apply(testQueue, decisions);
+				queue.push.apply(queue, decisions);
 				continue;
 			}
-			this.debug('tied decisions presort: '+decisions.map(function(o){return ''+o.pokemon;}).join(', '));
 			if (decisions[0].pokemon.tieOrder) {
-				this.debug('sorting on tieOrder');
 				decisions.sort(function(a,b){
 					if (a.pokemon && b.pokemon) {
 						return b.pokemon.tieOrder - a.pokemon.tieOrder;
@@ -3286,7 +3263,6 @@ Battle = (function () {
 				});
 				continue;
 			}
-			this.debug('no tie order found, sorting on position');
 			decisions.sort(function (a,b) {
 				if (a.pokemon && b.pokemon) {
 					if (a.pokemon.side.n - b.pokemon.side.n) return a.pokemon.side.n - b.pokemon.side.n;
@@ -3296,17 +3272,15 @@ Battle = (function () {
 				if (b.pokemon) return 1;
 				return 0;
 			});
-			this.debug('tied decisions post-sort: '+decisions.map(function(o){return ''+o.pokemon;}).join(', '));
 			// Rolling to see who wins the speed ties
 			while (decisions.length > 1) {
 				var rand = this.random(decisions.length);
 				decisions[rand].pokemon.tieOrder = decisions.length;
-				testQueue.push(decisions.splice(rand, 1)[0]);
+				queue.push(decisions.splice(rand, 1)[0]);
 			}
 			decisions[0].pokemon.tieOrder = 1;
-			testQueue.push(decisions[0]);
+			queue.push(decisions[0]);
 		}
-		this.debug('sortQueue() ran, queue: '+testQueue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
 	};
 	Battle.prototype.prioritizeQueue = function (decision, source, sourceEffect) {
 		if (this.event) {
