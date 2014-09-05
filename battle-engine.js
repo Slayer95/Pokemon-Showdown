@@ -3197,17 +3197,22 @@ Battle = (function () {
 		if (!noSort) {
 			this.sortQueue();
 			this.queue.sort(Battle.comparePriority);
+			this.debug('normally sorted queue: '+this.queue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
 		}
 	};
 	Battle.prototype.sortQueue = function () {
 		var testQueue = this.queue.slice();
-		this.debug('Sorting '+testQueue.length+' decisions.');
+		this.debug('Sorting '+testQueue.length+' decisions. Unsorted queue: '+testQueue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
 		var queue = testQueue || [];
 		var sortedQueue = [];
 		//  if (true) return;
 		sortedQueue.push(testQueue.shift()); // Add the first element to the sorted queue.
+		this.debug('Sort decision: '+sortedQueue[0].choice+(sortedQueue[0].pokemon?' '+sortedQueue[0].pokemon.toString().substr(0,3):''));
+		this.debug('Remaining to sort: '+testQueue.length);
 		while (testQueue.length) { // While there are more elements... 
 			var decision = testQueue.shift(); // Remove the next element.
+			this.debug('Sort decision: '+decision.choice+(decision.pokemon?' '+decision.pokemon.toString().substr(0,3):''));
+			this.debug('Remaining to sort: '+testQueue.length);
 			if (!decision.priority) decision.priority = 0;
 			if (!decision.subPriority) decision.subPriority = 0;
 			decision.speed = decision.speed || (decision.pokemon ? decision.pokemon.speed : 0);
@@ -3215,17 +3220,29 @@ Battle = (function () {
 			// decision.tieOrder = decision.tieOrder || (decision.pokemon ? decision.pokemon.tieOrder : 0);
 			for (var i = sortedQueue.length-1; i > -1; i--) {
 				var sortedDecision = (Array.isArray(sortedQueue[i]) ? sortedQueue[i][0] : sortedQueue[i]);
-				if (decision.priority > sortedDecision.priority) continue;
+				if (decision.priority > sortedDecision.priority) {
+					if (i > 0) continue;
+					sortedQueue.unshift(decision);
+					break;
+				}
 				if (decision.priority < sortedDecision.priority) {
 					sortedQueue.splice(i+1, 0, decision);
 					break;
 				}
-				if (decision.subPriority > sortedDecision.subPriority) continue;
+				if (decision.subPriority > sortedDecision.subPriority) {
+					if (i > 0) continue;
+					sortedQueue.unshift(decision);
+					break;
+				}
 				if (decision.subPriority < sortedDecision.subPriority) {
 					sortedQueue.splice(i+1, 0, decision);
 					break;
 				}
-				if (decision.speed > sortedDecision.speed) continue;
+				if (decision.speed > sortedDecision.speed) {
+					if (i > 0) continue;
+					sortedQueue.unshift(decision);
+					break;
+				}
 				if (decision.speed < sortedDecision.speed) {
 					sortedQueue.splice(i+1, 0, decision);
 					break;
@@ -3237,20 +3254,25 @@ Battle = (function () {
 					break;
 				}
 				*/
-				this.debug('speed is tied');
 				if (Array.isArray(sortedQueue[i])) sortedQueue[i].push(decision);
 				else sortedQueue[i] = [sortedQueue[i], decision];
-				this.debug('tied "'+decision.choice+'" decisons: '+sortedQueue[i].map(function(o){return o.pokemon.toString()}));
 			}
 		}
+		this.debug('Semi-sorted queue: '+sortedQueue.map(function(o){
+			if (!Array.isArray(o)) return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'');
+			else return '['+o.map(function(d){return d.choice+(d.pokemon?' '+d.pokemon.toString().substr(0,3):'')}).join(', ')+']'
+		}));
 		// Resolve speed ties
 		for (var i = 0; i < sortedQueue.length; i++) {
 			if (!Array.isArray(sortedQueue[i])) {
-				this.debug('no tie here');
 				testQueue.push(sortedQueue[i]);
 				continue;
 			}
 			var decisions = sortedQueue[i];
+			if (!decisions[0].pokemon) {
+				testQueue.push.apply(testQueue, decisions);
+				continue;
+			}
 			this.debug('tied decisions presort: '+decisions.map(function(o){return ''+o.pokemon;}).join(', '));
 			if (decisions[0].pokemon.tieOrder) {
 				this.debug('sorting on tieOrder');
@@ -3284,8 +3306,7 @@ Battle = (function () {
 			decisions[0].pokemon.tieOrder = 1;
 			testQueue.push(decisions[0]);
 		}
-		this.debug('sortQueue() ran');
-		// this.debug('Sorted queue with speed ties resolved: ',testQueue);
+		this.debug('sortQueue() ran, queue: '+testQueue.map(function(o){return o.choice+(o.pokemon?' '+o.pokemon.toString().substr(0,3):'')}).join(', '));
 	};
 	Battle.prototype.prioritizeQueue = function (decision, source, sourceEffect) {
 		if (this.event) {
