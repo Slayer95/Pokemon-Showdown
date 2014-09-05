@@ -2417,7 +2417,11 @@ Battle = (function () {
 		this.add('switch', pokemon, pokemon.getDetails);
 		pokemon.update();
 		this.runEvent('SwitchIn', pokemon);
-		this.addQueue({pokemon: pokemon, choice: 'runSwitch'});
+		pokemon.isStarted = true;
+		if (!pokemon.fainted) {
+			this.singleEvent('Start', pokemon.getAbility(), pokemon.abilityData, pokemon);
+			this.singleEvent('Start', pokemon.getItem(), pokemon.itemData, pokemon);
+		}
 	};
 	Battle.prototype.canSwitch = function (side) {
 		var canSwitchIn = [];
@@ -2475,7 +2479,11 @@ Battle = (function () {
 		this.add('drag', pokemon, pokemon.getDetails);
 		pokemon.update();
 		this.runEvent('SwitchIn', pokemon);
-		this.addQueue({pokemon: pokemon, choice: 'runSwitch'});
+		pokemon.isStarted = true;
+		if (!pokemon.fainted) {
+			this.singleEvent('Start', pokemon.getAbility(), pokemon.abilityData, pokemon);
+			this.singleEvent('Start', pokemon.getItem(), pokemon.itemData, pokemon);
+		}
 		return true;
 	};
 	Battle.prototype.swapPosition = function (pokemon, slot, attributes) {
@@ -3232,7 +3240,7 @@ Battle = (function () {
 				this.debug('speed is tied');
 				if (Array.isArray(sortedQueue[i])) sortedQueue[i].push(decision);
 				else sortedQueue[i] = [sortedQueue[i], decision];
-				this.debug('tied "'+decision.choice+'" decisons: '+sortedQueue[i]);
+				this.debug('tied "'+decision.choice+'" decisons: '+sortedQueue[i].map(function(o){return o.pokemon.toString()}));
 			}
 		}
 		// Resolve speed ties
@@ -3243,7 +3251,7 @@ Battle = (function () {
 				continue;
 			}
 			var decisions = sortedQueue[i];
-			this.debug('tied decisions presort: ',decisions.map(function(o){return o.toString();}).join(', '));
+			this.debug('tied decisions presort: '+decisions.map(function(o){return ''+o.pokemon;}).join(', '));
 			if (decisions[0].pokemon.tieOrder) {
 				this.debug('sorting on tieOrder');
 				decisions.sort(function(a,b){
@@ -3266,7 +3274,7 @@ Battle = (function () {
 				if (b.pokemon) return 1;
 				return 0;
 			});
-			this.debug('tied decisions post-sort: ',decisions.map(function(o){return o.toString();}).join(', '));
+			this.debug('tied decisions post-sort: '+decisions.map(function(o){return ''+o.pokemon;}).join(', '));
 			// Rolling to see who wins the speed ties
 			while (decisions.length > 1) {
 				var rand = this.random(decisions.length);
@@ -3463,11 +3471,13 @@ Battle = (function () {
 			//decision.target.runSwitchIn();
 			break;
 		case 'runSwitch':
+		/*
 			decision.pokemon.isStarted = true;
 			if (!decision.pokemon.fainted) {
 				this.singleEvent('Start', decision.pokemon.getAbility(), decision.pokemon.abilityData, decision.pokemon);
 				this.singleEvent('Start', decision.pokemon.getItem(), decision.pokemon.itemData, decision.pokemon);
 			}
+		*/
 			break;
 		case 'shift':
 			if (!decision.pokemon.isActive) return false;
