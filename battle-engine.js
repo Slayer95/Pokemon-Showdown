@@ -3350,7 +3350,7 @@ Battle = (function () {
 			var beginCallback = this.getFormat().onBegin;
 			if (beginCallback) beginCallback.call(this);
 
-			this.add('start'); // those switches resort queue @_@
+			this.add('start');
 			for (var pos = 0; pos < this.p1.active.length; pos++) {
 				this.switchIn(this.p1.pokemon[pos], pos);
 			}
@@ -3462,7 +3462,7 @@ Battle = (function () {
 				this.debug('Switch target is already active');
 				break;
 			}
-			this.switchIn(decision.target, decision.pokemon.position); // resorts queue
+			this.switchIn(decision.target, decision.pokemon.position);
 			//decision.target.runSwitchIn();
 			break;
 		case 'runSwitch':
@@ -3559,7 +3559,7 @@ Battle = (function () {
 			this.queue.push({choice:'beforeTurn', priority: 100});
 			this.midTurn = true;
 		}
-		this.addQueue(null); // This sorts the queue
+		this.sortQueue(); // Sort the queue
 
 		while (this.queue.length) {
 			var decision = this.queue.shift();
@@ -3589,7 +3589,7 @@ Battle = (function () {
 	Battle.prototype.changeDecision = function (pokemon, decision) {
 		this.cancelDecision(pokemon);
 		if (!decision.pokemon) decision.pokemon = pokemon;
-		this.addQueue(decision); // Resorts too
+		this.addQueue(decision);
 	};
 	/**
 	 * Takes a choice string passed from the client. Starts the next
