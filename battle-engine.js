@@ -2380,7 +2380,7 @@ Battle = (function () {
 		this.currentRequestDetails = '';
 		return true;
 	};
-	Battle.prototype.switchIn = function (pokemon, pos) {
+	Battle.prototype.switchIn = function (pokemon, pos, noSort) {
 		if (!pokemon || pokemon.isActive) return false;
 		if (!pos) pos = 0;
 		var side = pokemon.side;
@@ -2417,7 +2417,7 @@ Battle = (function () {
 		this.add('switch', pokemon, pokemon.getDetails);
 		pokemon.update();
 		this.runEvent('SwitchIn', pokemon);
-		this.addQueue({pokemon: pokemon, choice: 'runSwitch'});
+		this.addQueue({pokemon: pokemon, choice: 'runSwitch'}, noSort);
 	};
 	Battle.prototype.canSwitch = function (side) {
 		var canSwitchIn = [];
@@ -3344,11 +3344,12 @@ Battle = (function () {
 
 			this.add('start');
 			for (var pos = 0; pos < this.p1.active.length; pos++) {
-				this.switchIn(this.p1.pokemon[pos], pos);
+				this.switchIn(this.p1.pokemon[pos], pos, true);
 			}
 			for (var pos = 0; pos < this.p2.active.length; pos++) {
-				this.switchIn(this.p2.pokemon[pos], pos);
+				this.switchIn(this.p2.pokemon[pos], pos, true);
 			}
+			this.sortQueue();
 			for (var pos = 0; pos < this.p1.pokemon.length; pos++) {
 				pokemon = this.p1.pokemon[pos];
 				this.singleEvent('Start', this.getEffect(pokemon.species), pokemon.speciesData, pokemon);
