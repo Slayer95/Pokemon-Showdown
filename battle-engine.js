@@ -3191,6 +3191,8 @@ Battle = (function () {
 		}
 	};
 	Battle.prototype.sortQueue = function () {
+		// Debug function. Converts a decision or an array of decisions into a string.
+		// function decisionString(d) {return (Array.isArray(d) ? '['+d.map(decisionString).join(', ')+']' : d.choice+(d.pokemon?' '+d.pokemon.toString().substr(0,3):''));}
 		var queue = this.queue;
 		var sortedQueue = [];
 		sortedQueue.push(queue.shift()); // Add the first element to the sorted queue.
@@ -3231,6 +3233,7 @@ Battle = (function () {
 				// Speed Tie
 				if (Array.isArray(sortedQueue[i])) sortedQueue[i].push(decision);
 				else sortedQueue[i] = [sortedQueue[i], decision];
+				break;
 			}
 		}
 		// Resolve speed ties
@@ -3253,6 +3256,7 @@ Battle = (function () {
 					if (b.pokemon) return 1;
 					return 0;
 				});
+				queue.push.apply(queue, decisions);
 				continue;
 			}
 			decisions.sort(function (a,b) {
