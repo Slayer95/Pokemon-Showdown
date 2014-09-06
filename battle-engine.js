@@ -2417,11 +2417,7 @@ Battle = (function () {
 		this.add('switch', pokemon, pokemon.getDetails);
 		pokemon.update();
 		this.runEvent('SwitchIn', pokemon);
-		pokemon.isStarted = true;
-		if (!pokemon.fainted) {
-			this.singleEvent('Start', pokemon.getAbility(), pokemon.abilityData, pokemon);
-			this.singleEvent('Start', pokemon.getItem(), pokemon.itemData, pokemon);
-		}
+		this.addQueue({pokemon: pokemon, choice: 'runSwitch'});
 	};
 	Battle.prototype.canSwitch = function (side) {
 		var canSwitchIn = [];
@@ -2479,11 +2475,7 @@ Battle = (function () {
 		this.add('drag', pokemon, pokemon.getDetails);
 		pokemon.update();
 		this.runEvent('SwitchIn', pokemon);
-		pokemon.isStarted = true;
-		if (!pokemon.fainted) {
-			this.singleEvent('Start', pokemon.getAbility(), pokemon.abilityData, pokemon);
-			this.singleEvent('Start', pokemon.getItem(), pokemon.itemData, pokemon);
-		}
+		this.addQueue({pokemon: pokemon, choice: 'runSwitch'});
 		return true;
 	};
 	Battle.prototype.swapPosition = function (pokemon, slot, attributes) {
@@ -3466,13 +3458,11 @@ Battle = (function () {
 			//decision.target.runSwitchIn();
 			break;
 		case 'runSwitch':
-		/*
 			decision.pokemon.isStarted = true;
 			if (!decision.pokemon.fainted) {
 				this.singleEvent('Start', decision.pokemon.getAbility(), decision.pokemon.abilityData, decision.pokemon);
 				this.singleEvent('Start', decision.pokemon.getItem(), decision.pokemon.itemData, decision.pokemon);
 			}
-		*/
 			break;
 		case 'shift':
 			if (!decision.pokemon.isActive) return false;
