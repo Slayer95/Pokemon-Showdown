@@ -3137,6 +3137,7 @@ Battle = (function () {
 					'switch': 6,
 					'runSwitch': 6.1,
 					'megaEvo': 5.9,
+					'resort': 5.5, // Rerolls speed ties, GF stuff.
 					'residual': -100,
 					'team': 102,
 					'start': 101
@@ -3190,7 +3191,7 @@ Battle = (function () {
 			this.sortQueue();
 		}
 	};
-	Battle.prototype.sortQueue = function () {
+	Battle.prototype.sortQueue = function (rollSpeedTies) {
 		// Debug function. Converts a decision or an array of decisions into a string.
 		// function decisionString(d) {return (Array.isArray(d) ? '['+d.map(decisionString).join(', ')+']' : d.choice+(d.pokemon?' '+d.pokemon.toString().substr(0,3):''));}
 		var queue = this.queue;
@@ -3243,10 +3244,11 @@ Battle = (function () {
 				continue;
 			}
 			var decisions = sortedQueue[i];
-			if (!decisions[0].pokemon) {
+			if (!decisions[0].pokemon || !rollSpeedTies) {
 				queue.push.apply(queue, decisions);
 				continue;
 			}
+			/*
 			if (decisions[0].pokemon.tieOrder) {
 				decisions.sort(function(a,b){
 					if (a.pokemon && b.pokemon) {
@@ -3259,7 +3261,10 @@ Battle = (function () {
 				queue.push.apply(queue, decisions);
 				continue;
 			}
-			decisions.sort(function (a,b) {
+			*/
+			// Sort pokemon based on position before randomizing.
+			// P1's Left to Right then P2's Left to Right
+			decisions.sort(function (a,b) { 
 				if (a.pokemon && b.pokemon) {
 					if (a.pokemon.side.n - b.pokemon.side.n) return a.pokemon.side.n - b.pokemon.side.n;
 					return (a.pokemon.position - b.pokemon.position);
@@ -3271,10 +3276,10 @@ Battle = (function () {
 			// Rolling to see who wins the speed ties
 			while (decisions.length > 1) {
 				var rand = this.random(decisions.length);
-				decisions[rand].pokemon.tieOrder = decisions.length;
+				// decisions[rand].pokemon.tieOrder = decisions.length;
 				queue.push(decisions.splice(rand, 1)[0]);
 			}
-			decisions[0].pokemon.tieOrder = 1;
+			// decisions[0].pokemon.tieOrder = 1;
 			queue.push(decisions[0]);
 		}
 	};
@@ -3353,7 +3358,7 @@ Battle = (function () {
 			for (var pos = 0; pos < this.p2.active.length; pos++) {
 				this.switchIn(this.p2.pokemon[pos], pos, true);
 			}
-			this.sortQueue();
+			this.sortQueue(true);
 			for (var pos = 0; pos < this.p1.pokemon.length; pos++) {
 				pokemon = this.p1.pokemon[pos];
 				this.singleEvent('Start', this.getEffect(pokemon.species), pokemon.speciesData, pokemon);
@@ -3482,6 +3487,9 @@ Battle = (function () {
 			this.clearActiveMove(true);
 			this.residualEvent('Residual');
 			break;
+		case: 'resort':
+			this.sortQueue(true);
+			break;
 		}
 
 		// phazing (Roar, etc)
@@ -3552,9 +3560,10 @@ Battle = (function () {
 		if (!this.midTurn) {
 			this.queue.push({choice:'residual', priority: -100});
 			this.queue.push({choice:'beforeTurn', priority: 100});
+			this.queue.push({choice:'resort', priority: 5.5});
 			this.midTurn = true;
 		}
-		this.sortQueue(); // Sort the queue
+		this.sortQueue(true); // Sort the queue
 
 		while (this.queue.length) {
 			var decision = this.queue.shift();
