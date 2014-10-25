@@ -509,6 +509,32 @@ User = (function () {
 	User.prototype.popup = function (message) {
 		this.send('|popup|' + message.replace(/\n/g, '||'));
 	};
+	User.prototype.getAuth = function (room, globalPriority) {
+		var roomAuth, roomRank, globalAuth, globalRank;
+		globalAuth = this.group;
+		if (!Config.groups[globalAuth]) globalAuth = Config.groupsranking[0];
+		if (!room) return globalAuth;
+		
+		roomAuth = room.auth && room.auth[this.userid];
+		if (!Config.groups[roomAuth]) roomAuth = Config.groupsranking[0];
+		if (!globalPriority) return roomAuth;
+
+		globalRank = Config.groups[globalAuth].rank;
+		roomRank = Config.groups[roomAuth].rank;
+
+		switch (globalPriority) {
+		case true:
+			// highest authority level among room and global
+			if (roomRank < globalRank) return globalAuth;
+			return roomAuth;
+		case 'fallback':
+			// authority in the room if the user is authed there, defaults to global
+			return roomRank ? roomAuth : globalAuth;
+		default:
+			// authority in the room
+			return roomAuth;
+		}
+	};
 	User.prototype.getIdentity = function (roomid) {
 		if (this.locked) {
 			return '‽' + this.name;
@@ -543,19 +569,10 @@ User = (function () {
 		}
 
 		if (room && room.auth) {
-			if (room.auth[this.userid]) {
-				group = room.auth[this.userid];
-			} else if (room.isPrivate) {
-				group = ' ';
-			}
+			var globalPriority = room.type === 'battle';
+			if (!globalPriority) globalPriority = room.isPrivate && room.type === 'chat' ? false : 'fallback';
+			group = this.getAuth(room, globalPriority);
 			groupData = Config.groups[group];
-			if (target) {
-				if (room.auth[target.userid]) {
-					targetGroup = room.auth[target.userid];
-				} else if (room.isPrivate) {
-					targetGroup = ' ';
-				}
-			}
 		}
 
 		if (typeof target === 'string') targetGroup = target;
