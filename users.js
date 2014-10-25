@@ -1021,6 +1021,7 @@ User = (function () {
 		connection.user = this;
 		for (var i in connection.rooms) {
 			var room = connection.rooms[i];
+			if (room.type !== 'global' && room.checkBanned(this, true)) continue;
 			if (!this.roomCount[i]) {
 				room.onJoin(this, connection, true);
 				this.roomCount[i] = 0;

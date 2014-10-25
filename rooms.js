@@ -1414,6 +1414,22 @@ var ChatRoom = (function () {
 
 		return user;
 	};
+	ChatRoom.prototype.checkBanned = function (user, ignoreAlts) {
+		if (!this.bannedUsers) return false;
+		if (user.userid in this.bannedUsers || user.autoconfirmed in this.bannedUsers) {
+			for (var ip in user.ips) this.bannedIps[ip] = true;
+			user.leaveRoom(this);
+			if (ignoreAlts) return true;
+
+			var alts = user.getAlts();
+			for (var i = 0; i < alts.length; ++i) {
+				this.bannedUsers[toId(alts[i])] = true;
+				Users.getExact(alts[i]).leaveRoom(this);
+			}
+			return true;
+		}
+		return false;
+	};
 	ChatRoom.prototype.onRename = function (user, oldid, joining) {
 		delete this.users[oldid];
 		this.users[user.userid] = user;
@@ -1434,17 +1450,8 @@ var ChatRoom = (function () {
 		} else {
 			this.reportJoin(entry);
 		}
-		if (this.bannedUsers && (user.userid in this.bannedUsers || user.autoconfirmed in this.bannedUsers)) {
-			this.bannedUsers[oldid] = true;
-			for (var ip in user.ips) this.bannedIps[ip] = true;
-			user.leaveRoom(this);
-			var alts = user.getAlts();
-			for (var i = 0; i < alts.length; ++i) {
-				this.bannedUsers[toId(alts[i])] = true;
-				Users.getExact(alts[i]).leaveRoom(this);
-			}
-			return;
-		}
+		if (this.checkBanned(user)) return;
+
 		if (global.Tournaments && Tournaments.get(this.id)) {
 			Tournaments.get(this.id).updateFor(user);
 		}
