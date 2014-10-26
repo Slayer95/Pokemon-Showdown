@@ -267,12 +267,8 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 				this.logModCommand(data);
 			},
 			sendModCommand: function (data) {
-				for (var i in room.users) {
-					var user = room.users[i];
-					// hardcoded for performance reasons (this is an inner loop)
-					if (user.isStaff || (room.auth && (room.auth[user.userid] || '+') !== '+')) {
-						user.sendTo(room, data);
-					}
+				for (var userid in room.staffJoined) {
+					room.staffJoined[userid].sendTo(room, data);
 				}
 			},
 			logEntry: function (data) {

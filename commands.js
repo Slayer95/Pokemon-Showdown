@@ -404,6 +404,7 @@ var commands = exports.commands = {
 		var name = targetUser.name;
 
 		room.auth[targetUser.userid] = '#';
+		room.checkStaffJoined(targetUser);
 		this.addModCommand("" + name + " was appointed Room Owner by " + user.name + ".");
 		room.onUpdateIdentity(targetUser);
 		Rooms.global.writeChatRoomData();
@@ -424,6 +425,7 @@ var commands = exports.commands = {
 		if (!this.can('makeroom', null, room)) return false;
 
 		delete room.auth[userid];
+		room.checkStaffJoined(targetUser);
 		this.sendReply("(" + name + " is no longer Room Owner.)");
 		if (targetUser) targetUser.updateIdentity();
 		if (room.chatRoomData) {
@@ -476,6 +478,7 @@ var commands = exports.commands = {
 		} else {
 			room.auth[userid] = nextGroup;
 		}
+		room.checkStaffJoined(targetUser)
 
 		if (Config.groups[nextGroup].rank < Config.groups[currentGroup].rank) {
 			this.privateModCommand("(" + name + " was demoted to Room " + groupName + " by " + user.name + ".)");

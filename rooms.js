@@ -28,6 +28,7 @@ var Room = (function () {
 		this.title = (title || roomid);
 
 		this.users = Object.create(null);
+		this.staffJoined = Object.create(null);
 
 		this.log = [];
 
@@ -87,6 +88,17 @@ var Room = (function () {
 			this.add('|c|' + user.getIdentity(this.id) + '|' + message);
 		}
 		this.update();
+	};
+	Room.prototype.checkStaffJoined = function (user) {
+		if (user.isStaff) return (this.staffJoined[user.userid] = user);
+		if (!this.auth) return this.markStaffLeft(user);
+		var group = this.auth[user.userid];
+		if (Config.groups[group] && Config.groups[group].rank >= 2) return (this.staffJoined[user.userid] = user);
+		return this.markStaffLeft(user);
+	};
+	Room.prototype.markStaffLeft = function (user) {
+		delete this.staffJoined[user.userid];
+		return false;
 	};
 
 	return Room;
@@ -213,10 +225,11 @@ var GlobalRoom = (function () {
 		})();
 
 		// init users
-		this.users = {};
+		this.users = Object.create(null);
 		this.userCount = 0; // cache of `Object.size(this.users)`
 		this.maxUsers = 0;
 		this.maxUsersDate = 0;
+		this.staffJoined = Object.create(null);
 
 		this.reportUserStatsInterval = setInterval(
 			this.reportUserStats.bind(this),
@@ -504,6 +517,8 @@ var GlobalRoom = (function () {
 		if (this.users[user.userid]) return user;
 
 		this.users[user.userid] = user;
+		this.checkStaffJoined(user);
+
 		if (++this.userCount > this.maxUsers) {
 			this.maxUsers = this.userCount;
 			this.maxUsersDate = Date.now();
@@ -517,9 +532,39 @@ var GlobalRoom = (function () {
 
 		return user;
 	};
+	GlobalRoom.prototype.checkStaffJoined = function (user, propagateRooms) {
+		if (!user) return;
+		if (propagateRooms) {
+			if (typeof propagateRooms !== 'object') {
+				propagateRooms = user.roomCount || {};
+			}
+			for (var room in propagateRooms) {
+				if (room === this.id) continue;
+				rooms[room].checkStaffJoined(user);
+			}
+		}
+		if (user.isStaff) return (this.staffJoined[user.userid] = user);
+		return this.markStaffLeft(user);
+	};
+	GlobalRoom.prototype.markStaffLeft = function (user, propagateRooms) {
+		if (!user) return;
+		if (propagateRooms) {
+			if (typeof propagateRooms !== 'object') {
+				propagateRooms = user.roomCount || {};
+			}
+			for (var room in propagateRooms) {
+				if (room === this.id) continue;
+				rooms[room].markStaffLeft(user);
+			}
+		}
+		delete this.staffJoined[user.userid || user];
+		return false;
+	};
 	GlobalRoom.prototype.onRename = function (user, oldid, joining) {
 		delete this.users[oldid];
+		this.markStaffLeft(oldid, user.roomCount);
 		this.users[user.userid] = user;
+		this.checkStaffJoined(user, true);
 		return user;
 	};
 	GlobalRoom.prototype.onUpdateIdentity = function () {};
@@ -527,6 +572,7 @@ var GlobalRoom = (function () {
 		if (!user) return; // ...
 		delete this.users[user.userid];
 		--this.userCount;
+		this.markStaffLeft(user);
 		this.cancelSearch(user, true);
 	};
 	GlobalRoom.prototype.startBattle = function (p1, p2, format, p1team, p2team, options) {
@@ -1071,6 +1117,7 @@ var BattleRoom = (function () {
 
 		this.users[user.userid] = user;
 		this.userCount++;
+		this.checkStaffJoined(user);
 
 		this.sendUser(connection, '|init|battle\n|title|' + this.title + '\n' + this.getLogForUser(user).join('\n'));
 		if (user.named) {
@@ -1104,7 +1151,9 @@ var BattleRoom = (function () {
 			}
 		}
 		delete this.users[oldid];
+		this.markStaffLeft(oldid);
 		this.users[user.userid] = user;
+		this.checkStaffJoined(user);
 		this.update();
 		if (resend) {
 			// this handles a named user renaming themselves into a user in the
@@ -1126,6 +1175,7 @@ var BattleRoom = (function () {
 		}
 		delete this.users[user.userid];
 		this.userCount--;
+		this.markStaffLeft(user);
 		if (Config.reportbattlejoins) {
 			this.add('|leave|' + user.name);
 		} else {
@@ -1419,6 +1469,7 @@ var ChatRoom = (function () {
 
 		this.users[user.userid] = user;
 		this.userCount++;
+		this.checkStaffJoined(user);
 
 		if (!merging) {
 			var userList = this.userList ? this.userList : this.getUserList();
@@ -1455,7 +1506,9 @@ var ChatRoom = (function () {
 	};
 	ChatRoom.prototype.onRename = function (user, oldid, joining) {
 		delete this.users[oldid];
+		this.markStaffLeft(oldid);
 		this.users[user.userid] = user;
+		this.checkStaffJoined(user);
 		var entry;
 		if (joining) {
 			if (Config.reportjoins) {
@@ -1495,6 +1548,7 @@ var ChatRoom = (function () {
 
 		delete this.users[user.userid];
 		this.userCount--;
+		this.markStaffLeft(user);
 
 		if (user.named && Config.reportjoins) {
 			this.add('|l|' + user.getIdentity(this.id));

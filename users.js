@@ -1001,6 +1001,7 @@ User = (function () {
 				if (this.named) user.prevNames[this.userid] = this.name;
 				this.destroy();
 				Rooms.global.checkAutojoin(user);
+				Rooms.global.checkStaffJoined(user, true);
 				return true;
 			}
 
@@ -1011,6 +1012,7 @@ User = (function () {
 			if (avatar) this.avatar = avatar;
 			if (this.forceRename(name, authenticated)) {
 				Rooms.global.checkAutojoin(this);
+				if (this.isStaff) Rooms.global.staffJoined[this.userid] = this;
 				return true;
 			}
 			return false;
@@ -1064,6 +1066,7 @@ User = (function () {
 	User.prototype.setGroup = function (group) {
 		this.group = group.substr(0, 1);
 		this.isStaff = (this.group in {'%':1, '@':1, '&':1, '~':1});
+		Rooms.global.checkStaffJoined(this, true);
 		if (!this.group || this.group === Config.groupsranking[0]) {
 			delete usergroups[this.userid];
 		} else {
