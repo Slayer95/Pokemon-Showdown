@@ -1806,6 +1806,7 @@ var commands = exports.commands = {
 		if (!this.canBroadcast()) return;
 		var d = target.indexOf("d");
 		if (d >= 0) {
+			if (target.indexOf("e") >= 0) return this.sendReply("Scientific notation cannot be used with multi-dice rolls.");
 			var num = parseInt(target.substring(0, d));
 			var faces;
 			if (target.length > d) faces = parseInt(target.substring(d + 1));
@@ -1821,10 +1822,10 @@ var commands = exports.commands = {
 			}
 			return this.sendReplyBox("Random number " + num + "x(1 - " + faces + "): " + rolls.join(", ") + "<br />Total: " + total);
 		}
-		if (target && isNaN(target) || target.length > 21) return this.sendReply("The max roll must be a number under 21 digits.");
-		var maxRoll = (target) ? target : 6;
-		var rand = Math.floor(maxRoll * Math.random()) + 1;
-		return this.sendReplyBox("Random number (1 - " + maxRoll + "): " + rand);
+		if (isNaN(target) || target >= 1e22) return this.sendReply("The max roll must be a number under 21 digits.");
+		if (target <= 0) return this.sendReply("Number of faces must be greater than 0.");
+		var rand = Math.floor(target * Math.random()) + 1;
+		return this.sendReplyBox("Random number (1 - " + target + "): " + rand);
 	},
 	dicehelp: ["/dice [max number] - Randomly picks a number between 1 and the number you choose.",
 		"/dice [number of dice]d[number of sides] - Simulates rolling a number of dice, e.g., /dice 2d4 simulates rolling two 4-sided dice."],
