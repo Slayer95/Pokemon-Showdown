@@ -548,16 +548,16 @@ var GlobalRoom = (function () {
 	};
 	GlobalRoom.prototype.matchmakingOK = function (search1, search2, user1, user2) {
 		// users must be different
-		if (user1 === user2) return false;
+		if (user1 === user2) return null;
 
 		// users must have different IPs
-		if (user1.latestIp === user2.latestIp) return false;
+		if (user1.latestIp === user2.latestIp) return null;
 
 		// users must not have been matched immediately previously
-		if (user1.lastMatch === user2.userid || user2.lastMatch === user1.userid) return false;
+		if (user1.lastMatch === user2.userid || user2.lastMatch === user1.userid) return null;
 
 		// search must be within range
-		var searchRange = 100, formatid = search1.formatid, elapsed = Math.abs(search1.time - search2.time);
+		var searchRange = 100, elapsed = Math.abs(search1.time - search2.time);
 		if (formatid === 'ou' || formatid === 'oucurrent' || formatid === 'randombattle') searchRange = 50;
 		searchRange += elapsed / 300; // +1 every .3 seconds
 		if (searchRange > 300) searchRange = 300;
