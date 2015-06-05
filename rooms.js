@@ -12,6 +12,7 @@
 const TIMEOUT_EMPTY_DEALLOCATE = 10 * 60 * 1000;
 const TIMEOUT_INACTIVE_DEALLOCATE = 40 * 60 * 1000;
 const REPORT_USER_STATS_INTERVAL = 10 * 60 * 1000;
+const PERIODIC_MATCH_INTERVAL = 60 * 1000;
 
 var fs = require('fs');
 
@@ -407,6 +408,11 @@ var GlobalRoom = (function () {
 			this.reportUserStats.bind(this),
 			REPORT_USER_STATS_INTERVAL
 		);
+
+		this.periodicMatchInterval = setInterval(
+			this.periodicMatch.bind(this),
+			PERIODIC_MATCH_INTERVAL
+		);
 	}
 	GlobalRoom.prototype.type = 'global';
 
@@ -641,6 +647,41 @@ var GlobalRoom = (function () {
 
 		user.searching[formatid] = 1;
 		formatSearches.splice(position, 0, newSearch);
+	};
+	GlobalRoom.prototype.periodicMatch = function () {
+		for (var formatid in this.searches) {
+			var formatSearches = this.searches[formatid];
+			if (!formatSearches.length) continue;
+
+			var searchData, searchUser;
+			var topSearch = formatSearches[formatSearches.length - 1];
+			var topUser = Users.getExact(topSearch);
+			var result = -1;
+
+			for (var i = formatSearches.length - 2; i >= 0; i--) {
+				searchData = formatSearches[i];
+				searchUser = Users.getExact(searchData.userid);
+				var inRange = this.matchmakingOK(searchData, topSearch, searchUser, topUser);
+				if (inRange === false) break;
+				if (inRange) {
+					result = i;
+					break;
+				}
+			}
+			if (result >= 0) {
+				var usersToUpdate = [topUser, searchUser];
+				for (var i = 0; i < 2; i++) {
+					delete usersToUpdate[i].searching[formatid];
+					if (usersToUpdate[i].lastSearchFoes.length >= 2) usersToUpdate[i].lastSearchFoes.shift();
+					usersToUpdate[i].lastSearchFoes.push(usersToUpdate[1 - i].userid);
+					var searchedFormats = Object.keys(usersToUpdate[i].searching);
+					usersToUpdate[i].send('|updatesearch|' + JSON.stringify({searching: searchedFormats}));
+				}
+				formatSearches.pop();
+				formatSearches.splice(result, 1);
+				this.startBattle(searchUser, topUser, formatid, searchData.team, topSearch.team, {rated: true});
+			}
+		}
 	};
 	GlobalRoom.prototype.send = function (message, user) {
 		if (user) {
