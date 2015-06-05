@@ -548,8 +548,8 @@ var GlobalRoom = (function () {
 		// users must have different IPs
 		if (user1.latestIp === user2.latestIp) return null;
 
-		// users must not have been matched immediately previously
-		if (user1.lastMatch === user2.userid || user2.lastMatch === user1.userid) return null;
+		// users must not have been matched recently
+		if (user1.lastSearchFoes.indexOf(user2.userid) >= 0 || user2.lastSearchFoes.indexOf(user1.userid) >= 0) return null;
 
 		// search must be within range
 		var searchRange = 100, elapsed = Math.abs(search1.time - search2.time);
@@ -558,8 +558,6 @@ var GlobalRoom = (function () {
 		if (searchRange > 300) searchRange = 300;
 		if (Math.abs(search1.rating - search2.rating) > searchRange) return false;
 
-		user1.lastMatch = user2.userid;
-		user2.lastMatch = user1.userid;
 		return true;
 	};
 	GlobalRoom.prototype.addSearch = function (newSearch, user, formatid) {
@@ -631,6 +629,8 @@ var GlobalRoom = (function () {
 			var usersToUpdate = [user, searchUser];
 			for (var j = 0; j < 2; j++) {
 				delete usersToUpdate[j].searching[formatid];
+				if (usersToUpdate[j].lastSearchFoes.length >= 2) usersToUpdate[j].lastSearchFoes.shift();
+				usersToUpdate[j].lastSearchFoes.push(usersToUpdate[1 - j].userid);
 				var searchedFormats = Object.keys(usersToUpdate[j].searching);
 				usersToUpdate[j].send('|updatesearch|' + JSON.stringify({searching: searchedFormats}));
 			}

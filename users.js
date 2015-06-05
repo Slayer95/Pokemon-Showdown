@@ -517,6 +517,7 @@ User = (function () {
 		this.challengesFrom = {};
 		this.challengeTo = null;
 		this.lastChallenge = 0;
+		this.lastSearchFoes = [];
 
 		// initialize
 		users[this.userid] = this;
