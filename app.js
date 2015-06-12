@@ -429,3 +429,9 @@ fs.readFile(path.resolve(__dirname, 'config/ipbans.txt'), function (err, data) {
  *********************************************************/
 
 require('./repl.js').start('app', function (cmd) { return eval(cmd); });
+
+switch (global) {
+	case 1:
+		break;
+	case 2:
+}

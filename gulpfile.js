@@ -1,3 +1,4 @@
+var fs = require('fs');
 var path = require('path');
 var util = require('util');
 
@@ -10,6 +11,12 @@ var jshint = require('gulp-jshint');
 var replace = require('gulp-replace');
 var FileCache = require('cache-swap');
 var jshintStylish = require('./' + path.relative(__dirname, require('jshint-stylish')));
+
+var environmentVersion = {
+	gulpfile: fs.readFileSync(__filename, 'utf8'),
+	devTools: require('glob').sync('./dev-tools/**/*.js').map(function (filename) {return fs.readFileSync(filename, 'utf8');}),
+	versions: [process.versions.node].concat(['gulp-jscs', 'gulp-jshint', 'gulp'].map(function (packageName) {return require('./node_modules/' + packageName + '/package.json').version;}))
+};
 
 var globals = {};
 var globalList = [
@@ -31,6 +38,14 @@ function transformLet () {
 function lint (jsHintOptions, jscsOptions) {
 	function cachedJsHint () {
 		return cache(jshint(jsHintOptions, {timeout: 450000}), {
+			key: function (file) {
+				var key = JSON.stringify(util._extend({file: file._contents.toString('utf8')}, environmentVersion));
+				if (('' + file.history).slice(-6) === 'app.js') {
+					console.log(file);
+					console.log('keyHash: ' + require('crypto').createHash('md5').update(key).digest('hex'));
+				}
+				return key;
+			},
 			success: function (file) {
 				return file.jshint.success;
 			},
@@ -192,7 +207,7 @@ var lintData = [
 		jsHint: jsHintOptions.legacy,
 		jscs: jscsOptions.dataCompactAllIndented
 	}, {
-		dirs: ['./test/*.js', './test/application/*.js', './test/simulator/*/*.js', './test/dev-tools/*/*.js'],
+		dirs: ['./test/*.js', './test/application/*.js', './test/simulator/*/*.js', './test/dev-tools/**/*.js'],
 		jsHint: jsHintOptions.test,
 		jscs: jscsOptions.base
 	}
@@ -219,6 +234,11 @@ gulp.task('fastlint', function () {
 		.pipe(lint(source.jsHint, source.jscs))
 		.pipe(jshint.reporter(jshintStylish))
 		.pipe(jshint.reporter('fail'));
+});
+
+
+gulp.task('clear', function (done) {
+	return cache.clearAll(done);
 });
 
 gulp.task('lint', linter);
