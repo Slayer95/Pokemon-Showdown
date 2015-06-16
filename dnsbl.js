@@ -64,7 +64,7 @@ var rangeVoxility = cidr.checker('5.254.64.0/20');
 exports.reverse = function reverseDns(ip, callback) {
 	if (ip) {
 		if (ip.startsWith('106.76.') || ip.startsWith('106.77.') || ip.startsWith('106.78.') || ip.startsWith('106.79.') || ip.startsWith('112.110.') || ip.startsWith('27.97.') || ip.startsWith('49.15.') || ip.startsWith('49.14.') || ip.startsWith('1.187.')) {
-			callback(null, ['ideacellular.nohost']);
+			callback(null, ['ideacellular.nohost :)']);
 			return;
 		}
 		if (ip.startsWith('172.56.') || ip.startsWith('149.254.')) {
