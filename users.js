@@ -513,7 +513,7 @@ User = (function () {
 		this.roomCount = {};
 
 		// searches and challenges
-		this.searching = 0;
+		this.searching = Object.create(null);
 		this.challengesFrom = {};
 		this.challengeTo = null;
 		this.lastChallenge = 0;
@@ -1474,6 +1474,11 @@ User = (function () {
 		var format = Tools.getFormat(formatid);
 		if (!format['' + type + 'Show']) {
 			connection.popup("That format is not available.");
+			setImmediate(callback.bind(null, false));
+			return;
+		}
+		if (type === 'search' && this.searching[formatid]) {
+			connection.popup("You are already searching a battle in that format.");
 			setImmediate(callback.bind(null, false));
 			return;
 		}
