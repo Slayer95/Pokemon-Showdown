@@ -140,6 +140,7 @@ var CommandContext = exports.Context = (function () {
 		this.cmd = options.cmd || '';
 		this.fullCmd = options.fullCmd || '';
 		this.cmdToken = options.cmdToken || '';
+		this._cmdMain = '';
 
 		this.target = options.target || '';
 		this.message = options.message || '';
@@ -147,6 +148,7 @@ var CommandContext = exports.Context = (function () {
 
 		this.levelsDeep = options.levelsDeep || 0;
 		this.namespaces = options.namespaces || null;
+		this.commands = options.commands || null;
 
 		this.room = options.room || null;
 		this.user = options.user || null;
@@ -247,6 +249,44 @@ var CommandContext = exports.Context = (function () {
 			message = this.cmdToken + this.namespaces.concat(message.slice(1)).join(" ");
 		}
 		return CommandParser.parse(message, this.room, this.user, this.connection, this.levelsDeep + 1);
+	};
+	CommandContext.prototype.run = function (targetCmd, inNamespace) {
+		if (!targetCmd) targetCmd = this._cmdMain;
+		var commandHandler;
+
+		if (inNamespace) {
+			if (typeof inNamespace === 'object') {
+				commandHandler = inNamespace[targetCmd];
+			} else {
+				commandHandler = this.commands[targetCmd];
+			}
+		} else if (inNamespace === false) {
+			commandHandler = commands[targetCmd];
+		} else {
+			commandHandler = this.commands[targetCmd];
+		}
+
+		var result;
+		try {
+			result = commandHandler.call(this, this.target, this.room, this.user, this.connection, this.cmd, this.message);
+		} catch (err) {
+			var stack = err.stack + '\n\n' +
+					'Additional information:\n' +
+					'user = ' + this.user.name + '\n' +
+					'room = ' + this.room.id + '\n' +
+					'message = ' + this.originalMessage;
+			var fakeErr = {stack: stack};
+
+			if (!require('./crashlogger.js')(fakeErr, 'A chat command')) {
+				var ministack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
+				Rooms.lobby.send('|html|<div class="broadcast-red"><b>POKEMON SHOWDOWN HAS CRASHED:</b> ' + ministack + '</div>');
+			} else {
+				this.sendReply('|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
+			}
+		}
+		if (result === undefined) result = false;
+
+		return result;
 	};
 	CommandContext.prototype.canTalk = function (message, relevantRoom, targetUser) {
 		var innerRoom = (relevantRoom !== undefined) ? relevantRoom : this.room;
@@ -384,10 +424,13 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 	var currentCommands = commands;
 	var originalMessage = message;
 	var commandHandler;
+	var _cmdMain = cmd;
+
 	do {
 		commandHandler = currentCommands[cmd];
 		if (typeof commandHandler === 'string') {
 			// in case someone messed up, don't loop
+			_cmdMain = commandHandler;
 			commandHandler = currentCommands[commandHandler];
 		}
 		if (commandHandler && typeof commandHandler === 'object') {
@@ -404,6 +447,7 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 			var newMessage = message.replace(cmd + (target ? ' ' : ''), '');
 
 			cmd = newCmd;
+			_cmdMain = newCmd;
 			target = newTarget;
 			message = newMessage;
 			currentCommands = commandHandler;
@@ -412,6 +456,7 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 	if (!commandHandler && currentCommands.default) {
 		commandHandler = currentCommands.default;
 		if (typeof commandHandler === 'string') {
+			_cmdMain = commandHandler;
 			commandHandler = currentCommands[commandHandler];
 		}
 	}
@@ -420,30 +465,11 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 	if (commandHandler) {
 		var context = new CommandContext({
 			target: target, room: room, user: user, connection: connection, cmd: cmd, message: message,
-			levelsDeep: levelsDeep, namespaces: namespaces, cmdToken: cmdToken
+			namespaces: namespaces, commands: currentCommands, originalMessage: originalMessage,
+			cmdToken: cmdToken, levelsDeep: levelsDeep, _cmdMain: _cmdMain
 		});
 
-		var result;
-		try {
-			result = commandHandler.call(context, target, room, user, connection, cmd, message);
-		} catch (err) {
-			var stack = err.stack + '\n\n' +
-					'Additional information:\n' +
-					'user = ' + user.name + '\n' +
-					'room = ' + room.id + '\n' +
-					'message = ' + originalMessage;
-			var fakeErr = {stack: stack};
-
-			if (!require('./crashlogger.js')(fakeErr, 'A chat command')) {
-				var ministack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
-				Rooms.lobby.send('|html|<div class="broadcast-red"><b>POKEMON SHOWDOWN HAS CRASHED:</b> ' + ministack + '</div>');
-			} else {
-				context.sendReply('|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
-			}
-		}
-		if (result === undefined) result = false;
-
-		return result;
+		return context.run();
 	} else {
 		// Check for mod/demod/admin/deadmin/etc depending on the group ids
 		for (var g in Config.groups) {
