@@ -34,6 +34,8 @@ const VALID_COMMAND_TOKENS = '/!';
 
 const BROADCAST_TOKEN = '!';
 
+const INVALID_COMMAND_PATTERNS = /^(.)\1|^.[\.\_\-]/;
+
 var fs = require('fs');
 var path = require('path');
 
@@ -405,7 +407,7 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 		message = '/evalbattle ' + message.substr(4);
 	}
 
-	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && message.charAt(1) !== message.charAt(0)) {
+	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && !INVALID_COMMAND_PATTERNS.test(message)) {
 		cmdToken = message.charAt(0);
 		var spaceIndex = message.indexOf(' ');
 		if (spaceIndex > 0) {
@@ -480,9 +482,6 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 
 		if (cmdToken && fullCmd) {
 			// To guard against command typos, we now emit an error message
-			if (cmdToken === BROADCAST_TOKEN) {
-				return connection.sendTo(room.id, "The command '" + cmdToken + fullCmd + "' was unrecognized.");
-			}
 			return connection.sendTo(room.id, "The command '" + cmdToken + fullCmd + "' was unrecognized. To send a message starting with '" + cmdToken + fullCmd + "', type '" + cmdToken.repeat(2) + fullCmd + "'.");
 		}
 	}
@@ -490,7 +489,7 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 	message = canTalk(user, room, connection, cmdToken + message);
 	if (!message) return false;
 
-	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && message.charAt(1) !== message.charAt(0)) {
+	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && !INVALID_COMMAND_PATTERNS.test(message)) {
 		return parse(message, room, user, connection, levelsDeep + 1);
 	}
 
