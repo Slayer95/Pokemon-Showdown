@@ -671,7 +671,6 @@ module.exports = (function () {
 		for (var i = 0; i < searchIn.length; i++) {
 			var res = this[searchFunctions[searchIn[i]]](target);
 			if (res.exists) {
-				res.searchType = searchTypes[searchIn[i]];
 				searchResults.push(res);
 			}
 		}

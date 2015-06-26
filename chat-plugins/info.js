@@ -200,7 +200,7 @@ var commands = exports.commands = {
 				if (newTargets[i].id !== targetId && !Tools.data.Aliases[targetId] && !i) {
 					buffer = "No Pok\u00e9mon, item, move, ability or nature named '" + target + "' was found. Showing the data of '" + newTargets[0].name + "' instead.\n";
 				}
-				if (newTargets[i].searchType === 'nature') {
+				if (newTargets[i].effectType === 'Nature') {
 					buffer += "" + newTargets[i].name + " nature: ";
 					if (newTargets[i].plus) {
 						var statNames = {'atk': "Attack", 'def': "Defense", 'spa': "Special Attack", 'spd': "Special Defense", 'spe': "Speed"};
@@ -210,7 +210,7 @@ var commands = exports.commands = {
 					}
 					return this.sendReply(buffer);
 				} else {
-					buffer += '|c|~|/data-' + newTargets[i].searchType + ' ' + newTargets[i].name + '\n';
+					buffer += '|c|~|/data-' + newTargets[i].effectType.toLowerCase() + ' ' + newTargets[i].name + '\n';
 				}
 			}
 		} else {
@@ -221,7 +221,7 @@ var commands = exports.commands = {
 			var details;
 			var isSnatch = false;
 			var isMirrorMove = false;
-			if (newTargets[0].searchType === 'pokemon') {
+			if (newTargets[0].effectType === 'Pokemon') {
 				var pokemon = Tools.getTemplate(newTargets[0].name);
 				var weighthit = 20;
 				if (pokemon.weightkg >= 200) {
@@ -251,7 +251,7 @@ var commands = exports.commands = {
 						return evo.name + " (" + evo.evoLevel + ")";
 					}).join(", ");
 				}
-			} else if (newTargets[0].searchType === 'move') {
+			} else if (newTargets[0].effectType === 'Move') {
 				var move = Tools.getMove(newTargets[0].name);
 				details = {
 					"Priority": move.priority,
@@ -289,7 +289,7 @@ var commands = exports.commands = {
 					'any': "Any Pok\u00e9mon",
 					'all': "All Pok\u00e9mon"
 				}[move.target] || "Unknown";
-			} else if (newTargets[0].searchType === 'item') {
+			} else if (newTargets[0].effectType === 'Item') {
 				var item = Tools.getItem(newTargets[0].name);
 				details = {
 					"Gen": item.gen
