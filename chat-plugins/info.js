@@ -179,74 +179,95 @@ var commands = exports.commands = {
 	pokedex: 'data',
 	data: function (target, room, user, connection, cmd) {
 		if (!this.canBroadcast()) return;
-
-		var buffer = '';
 		var targetId = toId(target);
 		if (!targetId) return this.parse('/help data');
-		if (targetId === '' + parseInt(targetId)) {
-			for (var p in Tools.data.Pokedex) {
-				var pokemon = Tools.getTemplate(p);
-				if (pokemon.num === parseInt(target)) {
-					target = pokemon.species;
-					targetId = pokemon.id;
-					break;
-				}
+
+		if (!/[^\d]/g.test(targetId)) {
+			// Get a Pokémon by its dex number (No CAP).
+			var num = parseInt(targetId, 10);
+			if (!Number.isInteger(num) || num < 0 || num > 721) return this.sendReply("No Pokémon has the Dex number " + targetId + ".");
+			for (var speciesid in Tools.data.Pokedex) {
+				if (Tools.data.Pokedex[speciesid].num !== num) continue;
+				target = Tools.getTemplate(speciesid).baseSpecies;
+				targetId = toId(target);
+				break;
 			}
-		}
-		var newTargets = Tools.dataSearch(target);
-		var showDetails = (cmd === 'dt' || cmd === 'details');
-		if (newTargets && newTargets.length) {
-			for (var i = 0; i < newTargets.length; ++i) {
-				if (newTargets[i].id !== targetId && !Tools.data.Aliases[targetId] && !i) {
-					buffer = "No Pok\u00e9mon, item, move, ability or nature named '" + target + "' was found. Showing the data of '" + newTargets[0].name + "' instead.\n";
-				}
-				if (newTargets[i].effectType === 'Nature') {
-					buffer += "" + newTargets[i].name + " nature: ";
-					if (newTargets[i].plus) {
-						var statNames = {'atk': "Attack", 'def': "Defense", 'spa': "Special Attack", 'spd': "Special Defense", 'spe': "Speed"};
-						buffer += "+10% " + statNames[newTargets[i].plus] + ", -10% " + statNames[newTargets[i].minus] + ".";
-					} else {
-						buffer += "No effect.";
-					}
-					return this.sendReply(buffer);
-				} else {
-					buffer += '|c|~|/data-' + newTargets[i].effectType.toLowerCase() + ' ' + newTargets[i].name + '\n';
-				}
-			}
-		} else {
-			return this.sendReply("No Pok\u00e9mon, item, move, ability or nature named '" + target + "' was found. (Check your spelling?)");
 		}
 
-		if (showDetails) {
+		var buffer = '';
+		var appendBuffer = '';
+		var newTargets = Tools.dataSearch(targetId);
+		if (!newTargets || !newTargets.length) {
+			return this.sendReply("No Pok\u00e9mon, item, move, ability or nature named '" + target + "' was found. (Check your spelling?)");
+		}
+		if (newTargets[0].id !== targetId && !Tools.data.Aliases[targetId]) {
+			buffer = "No Pok\u00e9mon, item, move, ability or nature named '" + target + "' was found. Showing the data of '" + newTargets[0].name + "' instead.\n";
+		}
+		for (var i = 0; i < newTargets.length; ++i) {
+			if (newTargets[i].effectType === 'Nature') {
+				// TODO: Revisit https://github.com/Zarel/Pokemon-Showdown-Client/pull/209
+				buffer += "" + newTargets[i].name + " nature: ";
+				if (newTargets[i].plus) {
+					var statNames = {'atk': "Attack", 'def': "Defense", 'spa': "Special Attack", 'spd': "Special Defense", 'spe': "Speed"};
+					buffer += "+10% " + statNames[newTargets[i].plus] + ", -10% " + statNames[newTargets[i].minus] + ".";
+				} else {
+					buffer += "No effect.";
+				}
+				return this.sendReply(buffer);
+			} else {
+				buffer += '|c|~|/data-' + newTargets[i].effectType.toLowerCase() + ' ' + newTargets[i].name + '\n';
+			}
+		}
+
+		var detailNames = {
+			num: "Dex#", gen: "Gen", heightm: "Height", weightkg: "Weight", color: "Dex Colour", eggGroups: "Egg Group(s)",
+			evolution: "Evolution", noevolution: "<font color=#585858>Does Not Evolve</font>",
+			priority: "Priority", secondary: "<font color=black>&#10003; Secondary effect</font>", target: "Target",
+			fling: "Fling", flingBP: "Fling Base Power", flingEffect: "Fling Effect",
+			naturalGiftType: "Natural Gift Type", naturalGiftBP: "Natural Gift Base Power"
+		};
+
+		var flagNames = {
+			contact: "Contact", sound: "Sound", bullet: "Bullet", pulse: "Pulse", protect: "Bypasses Protect",
+			authentic: "Bypasses Substitutes", defrost: "Thaws user", bite: "Bite", punch: "Punch",
+			powder: "Powder", bounceable: "Bounceable", gravity: "Supressed by Gravity"
+		};
+		for (var flagId in flagNames) {
+			detailNames[flagId] = "<font color=black>&#" + (flagId === 'gravity' ? 10007 : 10003) + "; " + flagNames[flagId] + "</font>";
+		}
+
+		var targetNames = {
+			'normal': "One Adjacent Pok\u00e9mon",
+			'self': "User",
+			'adjacentAlly': "One Ally",
+			'adjacentAllyOrSelf': "User or Ally",
+			'adjacentFoe': "One Adjacent Opposing Pok\u00e9mon",
+			'allAdjacentFoes': "All Adjacent Opponents",
+			'foeSide': "Opposing Side",
+			'allySide': "User's Side",
+			'allyTeam': "User's Side",
+			'allAdjacent': "All Adjacent Pok\u00e9mon",
+			'any': "Any Pok\u00e9mon",
+			'all': "All Pok\u00e9mon"
+		};
+
+		if (cmd === 'dt' || cmd === 'details') {
 			var details;
-			var isSnatch = false;
-			var isMirrorMove = false;
 			if (newTargets[0].effectType === 'Pokemon') {
 				var pokemon = Tools.getTemplate(newTargets[0].name);
-				var weighthit = 20;
-				if (pokemon.weightkg >= 200) {
-					weighthit = 120;
-				} else if (pokemon.weightkg >= 100) {
-					weighthit = 100;
-				} else if (pokemon.weightkg >= 50) {
-					weighthit = 80;
-				} else if (pokemon.weightkg >= 25) {
-					weighthit = 60;
-				} else if (pokemon.weightkg >= 10) {
-					weighthit = 40;
-				}
+				var weighthit = (pokemon.weightkg >= 200 ? 120 : pokemon.weightkg >= 100 ? 100 : pokemon.weightkg >= 50 ? 80 : pokemon.weightkg >= 25 ? 60 : pokemon.weightkg >= 10 ? 40 : 20);
 				details = {
-					"Dex#": pokemon.num,
-					"Gen": pokemon.gen,
-					"Height": pokemon.heightm + " m",
-					"Weight": pokemon.weightkg + " kg <em>(" + weighthit + " BP)</em>",
-					"Dex Colour": pokemon.color,
-					"Egg Group(s)": pokemon.eggGroups.join(", ")
+					"num": pokemon.num,
+					"gen": pokemon.gen,
+					"heightm": pokemon.heightm + " m",
+					"weightkg": pokemon.weightkg + " kg <em>(" + weighthit + " BP)</em>",
+					"color": pokemon.color,
+					"eggGroups": pokemon.eggGroups.join(", ")
 				};
 				if (!pokemon.evos.length) {
-					details["<font color=#585858>Does Not Evolve</font>"] = "";
+					details['noevolution'] = "";
 				} else {
-					details["Evolution"] = pokemon.evos.map(function (evo) {
+					details['evolution'] = pokemon.evos.map(function (evo) {
 						evo = Tools.getTemplate(evo);
 						return evo.name + " (" + evo.evoLevel + ")";
 					}).join(", ");
@@ -254,73 +275,53 @@ var commands = exports.commands = {
 			} else if (newTargets[0].effectType === 'Move') {
 				var move = Tools.getMove(newTargets[0].name);
 				details = {
-					"Priority": move.priority,
-					"Gen": move.gen
+					"priority": move.priority,
+					"gen": move.gen
 				};
 
-				if (move.secondary || move.secondaries) details["<font color=black>&#10003; Secondary effect</font>"] = "";
-				if (move.flags['contact']) details["<font color=black>&#10003; Contact</font>"] = "";
-				if (move.flags['sound']) details["<font color=black>&#10003; Sound</font>"] = "";
-				if (move.flags['bullet']) details["<font color=black>&#10003; Bullet</font>"] = "";
-				if (move.flags['pulse']) details["<font color=black>&#10003; Pulse</font>"] = "";
-				if (!move.flags['protect'] && !/(ally|self)/i.test(move.target)) details["<font color=black>&#10003; Bypasses Protect</font>"] = "";
-				if (move.flags['authentic']) details["<font color=black>&#10003; Bypasses Substitutes</font>"] = "";
-				if (move.flags['defrost']) details["<font color=black>&#10003; Thaws user</font>"] = "";
-				if (move.flags['bite']) details["<font color=black>&#10003; Bite</font>"] = "";
-				if (move.flags['punch']) details["<font color=black>&#10003; Punch</font>"] = "";
-				if (move.flags['powder']) details["<font color=black>&#10003; Powder</font>"] = "";
-				if (move.flags['reflectable']) details["<font color=black>&#10003; Bounceable</font>"] = "";
-				if (move.flags['gravity']) details["<font color=black>&#10007; Suppressed by Gravity</font>"] = "";
+				if (move.secondary || move.secondaries) details['secondary'] = "";
 
-				if (move.id === 'snatch') isSnatch = true;
-				if (move.id === 'mirrormove') isMirrorMove = true;
+				for (var flagId in flagNames) {
+					if (flagId === 'protect') {
+						if (!move.flags[flagId] && !/(ally|self)/i.test(move.target)) details[flagId] = "";
+					} else {
+						if (move.flags[flagId]) details[flagId] = "";
+					}
+				}
 
-				details["Target"] = {
-					'normal': "One Adjacent Pok\u00e9mon",
-					'self': "User",
-					'adjacentAlly': "One Ally",
-					'adjacentAllyOrSelf': "User or Ally",
-					'adjacentFoe': "One Adjacent Opposing Pok\u00e9mon",
-					'allAdjacentFoes': "All Adjacent Opponents",
-					'foeSide': "Opposing Side",
-					'allySide': "User's Side",
-					'allyTeam': "User's Side",
-					'allAdjacent': "All Adjacent Pok\u00e9mon",
-					'any': "Any Pok\u00e9mon",
-					'all': "All Pok\u00e9mon"
-				}[move.target] || "Unknown";
+				if (move.id === 'snatch') appendBuffer += '&nbsp;|&ThickSpace;<a href="http://pokemonshowdown.com/dex/moves/snatch"><font size="1">Snatchable Moves</font></a>';
+				if (move.id === 'mirrormove') appendBuffer += '&nbsp;|&ThickSpace;<a href="http://pokemonshowdown.com/dex/moves/mirrormove"><font size="1">Mirrorable Moves</font></a>';
+
+				details['target'] = targetNames[move.target] || "Unknown";
 			} else if (newTargets[0].effectType === 'Item') {
 				var item = Tools.getItem(newTargets[0].name);
 				details = {
-					"Gen": item.gen
+					"gen": item.gen
 				};
-
 				if (item.fling) {
-					details["Fling Base Power"] = item.fling.basePower;
-					if (item.fling.status) details["Fling Effect"] = item.fling.status;
-					if (item.fling.volatileStatus) details["Fling Effect"] = item.fling.volatileStatus;
-					if (item.isBerry) details["Fling Effect"] = "Activates the Berry's effect on the target.";
-					if (item.id === 'whiteherb') details["Fling Effect"] = "Restores the target's negative stat stages to 0.";
-					if (item.id === 'mentalherb') details["Fling Effect"] = "Removes the effects of Attract, Disable, Encore, Heal Block, Taunt, and Torment from the target.";
+					details.flingBP = item.fling.basePower;
+					if (item.fling.status) details.flingEffect = item.fling.status;
+					if (item.fling.volatileStatus) details.flingEffect = item.fling.volatileStatus;
+					if (item.isBerry) details.flingEffect = "Activates the Berry's effect on the target.";
+					if (item.id === 'whiteherb') details.flingEffect = "Restores the target's negative stat stages to 0.";
+					if (item.id === 'mentalherb') details.flingEffect = "Removes the effects of Attract, Disable, Encore, Heal Block, Taunt, and Torment from the target.";
 				} else {
-					details["Fling"] = "This item cannot be used with Fling.";
+					details.fling = "This item cannot be used with Fling.";
 				}
+
 				if (item.naturalGift) {
-					details["Natural Gift Type"] = item.naturalGift.type;
-					details["Natural Gift Base Power"] = item.naturalGift.basePower;
+					details.naturalGiftType = item.naturalGift.type;
+					details.naturalGiftBP = item.naturalGift.basePower;
 				}
 			} else {
 				details = {};
 			}
 
 			buffer += '|raw|<font size="1">' + Object.keys(details).map(function (detail) {
-				return '<font color=#585858>' + detail + (details[detail] !== '' ? ':</font> ' + details[detail] : '</font>');
+				return '<font color=#585858>' + detailNames[detail] + (details[detail] !== '' ? ':</font> ' + details[detail] : '</font>');
 			}).join("&nbsp;|&ThickSpace;") + '</font>';
-
-			if (isSnatch) buffer += '&nbsp;|&ThickSpace;<a href="http://pokemonshowdown.com/dex/moves/snatch"><font size="1">Snatchable Moves</font></a>';
-			if (isMirrorMove) buffer += '&nbsp;|&ThickSpace;<a href="http://pokemonshowdown.com/dex/moves/mirrormove"><font size="1">Mirrorable Moves</font></a>';
 		}
-		this.sendReply(buffer);
+		this.sendReply(buffer + appendBuffer);
 	},
 	datahelp: ["/data [pokemon/item/move/ability] - Get details on this pokemon/item/move/ability/nature.",
 		"!data [pokemon/item/move/ability] - Show everyone these details. Requires: + % @ # & ~"],
