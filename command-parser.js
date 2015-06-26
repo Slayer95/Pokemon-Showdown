@@ -478,19 +478,19 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 			}
 		}
 
-		if (cmdToken && fullCmd) {
+		if (cmdToken !== BROADCAST_TOKEN && fullCmd) {
 			// To guard against command typos, we now emit an error message
-			if (cmdToken === BROADCAST_TOKEN) {
-				return connection.sendTo(room.id, "The command '" + cmdToken + fullCmd + "' was unrecognized.");
-			}
 			return connection.sendTo(room.id, "The command '" + cmdToken + fullCmd + "' was unrecognized. To send a message starting with '" + cmdToken + fullCmd + "', type '" + cmdToken.repeat(2) + fullCmd + "'.");
 		}
 	}
 
-	message = canTalk(user, room, connection, cmdToken + message);
+	if (cmdToken !== BROADCAST_TOKEN && fullCmd) {
+		message = cmdToken + message;
+	}
+	message = canTalk(user, room, connection, message);
 	if (!message) return false;
 
-	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && message.charAt(1) !== message.charAt(0)) {
+	if (VALID_COMMAND_TOKENS.includes(message.charAt(0)) && message.charAt(1) !== message.charAt(0) && message.charAt(0) !== BROADCAST_TOKEN) {
 		return parse(message, room, user, connection, levelsDeep + 1);
 	}
 
