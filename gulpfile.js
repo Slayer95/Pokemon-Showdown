@@ -1,3 +1,4 @@
+var fs = require('fs');
 var path = require('path');
 var util = require('util');
 
@@ -8,8 +9,16 @@ var cache = require('gulp-cache');
 var jscs = require('gulp-jscs');
 var jshint = require('gulp-jshint');
 var replace = require('gulp-replace');
-var FileCache = require('cache-swap');
-var jshintStylish = require('./' + path.relative(__dirname, require('jshint-stylish')));
+var jshintStylish = require('jshint-stylish');
+
+var CacheSwap = require('cache-swap');
+var fileCache = new CacheSwap({tmpDir: '.', cacheDirName: 'gulp-cache'});
+
+var environmentVersion = {
+	gulpfile: fs.readFileSync(__filename, 'utf8'),
+	devTools: require('glob').sync('./dev-tools/**/*.js').map(function (filename) {return fs.readFileSync(filename, 'utf8');}),
+	versions: [process.versions.node].concat(['gulp-cache', 'gulp-jscs', 'gulp-jshint', 'gulp'].map(function (packageName) {return require('./node_modules/' + packageName + '/package.json').version;}))
+};
 
 var globals = {};
 var globalList = [
@@ -28,6 +37,47 @@ function transformLet () {
 		.pipe(replace.bind(null, /\bvar\b/g, 'let'))();
 }
 
+function cachedJsHint (jsHintOptions) {
+	function cachedJsHint () {
+		return cache(jshint(jsHintOptions, {timeout: 450000}), {
+			success: function (file) {
+				return file.jshint.success;
+			},
+			value: function (file) {
+				return {jshint: file.jshint};
+			},
+			fileCache: fileCache
+		});
+	}
+	return lazypipe()
+		.pipe(cachedJsHint)();
+}
+
+function cachedJscs (jscsOptions) {
+	function cachedJscs () {
+		return cache(jscs(jscsOptions, {timeout: 450000}), {
+			key: function (file) {
+				var key = JSON.stringify(util._extend({file: file._contents.toString('utf8')}, environmentVersion));
+				if (('' + file.history).slice(-6) === 'app.js') {
+					console.log(file);
+					console.log('keyHash: ' + require('crypto').createHash('md5').update(key).digest('hex'));
+				}
+				return key;
+			},
+			success: function (file) {
+				console.log('JSCS success at ' + path.basename('' + file.history));
+				return file.jscs.success;
+			},
+			value: function (file) {
+				return {jscs: file.jscs};
+			},
+			fileCache: fileCache
+		});
+	}
+	return lazypipe()
+		.pipe(cachedJscs)();
+}
+
 function lint (jsHintOptions, jscsOptions) {
 	function cachedJsHint () {
 		return cache(jshint(jsHintOptions, {timeout: 450000}), {
@@ -37,7 +87,7 @@ function lint (jsHintOptions, jscsOptions) {
 			value: function (file) {
 				return {jshint: file.jshint};
 			},
-			fileCache: new FileCache({tmpDir: '.', cacheDirName: 'gulp-cache'})
+			fileCache: fileCache
 		});
 	}
 	return lazypipe()
@@ -219,6 +269,10 @@ gulp.task('fastlint', function () {
 		.pipe(lint(source.jsHint, source.jscs))
 		.pipe(jshint.reporter(jshintStylish))
 		.pipe(jshint.reporter('fail'));
+});
+
+gulp.task('clear', function (done) {
+	fileCache.clear('default', done);
 });
 
 gulp.task('lint', linter);
