@@ -30,7 +30,7 @@ function transformLet () {
 
 function lint (jsHintOptions, jscsOptions) {
 	function cachedJsHint () {
-		return cache(jshint(jsHintOptions, {timeout: 450000}), {
+		return cache(jshint(jsHintOptions), {
 			success: function (file) {
 				return file.jshint.success;
 			},
