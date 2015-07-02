@@ -52,14 +52,15 @@
     "cache-swap": "~0.2.1",
     "gulp": "~3.9.0",
     "gulp-cache": "~0.2.10",
-    "gulp-jshint": "git://github.com/spalger/gulp-jshint#1ad236236",
+    "gulp-jshint": "~1.11.2",
     "gulp-jscs": "~1.6.0",
     "gulp-replace": "~0.5.3",
     "jshint-stylish": "~2.0.1",
     "mocha": "~2.2.5",
     "lazypipe": "~0.2.4",
-    "merge-stream": "~0.1.7",
+    "merge-stream": "~0.1.8",
     "jscs": "~1.13.1",
-	"glob": "~5.0.12"
+	"glob": "~5.0.12",
+	"gulp-jscs-stylish": "~1.1.0"
   }
 }

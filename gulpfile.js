@@ -10,6 +10,7 @@ var jscs = require('gulp-jscs');
 var jshint = require('gulp-jshint');
 var replace = require('gulp-replace');
 var jshintStylish = require('jshint-stylish');
+var stylish = require('gulp-jscs-stylish');
 
 var CacheSwap = require('cache-swap');
 var fileCache = new CacheSwap({tmpDir: '.', cacheDirName: 'gulp-cache'});
@@ -38,61 +39,34 @@ function transformLet () {
 }
 
 function cachedJsHint (jsHintOptions) {
-	function cachedJsHint () {
-		return cache(jshint(jsHintOptions, {timeout: 450000}), {
+	return lazypipe().pipe(function cachedJsHint () {
+		return cache(jshint(jsHintOptions), {
 			success: function (file) {
-				return file.jshint.success;
+				return file.jshint && file.jshint.success;
 			},
 			value: function (file) {
 				return {jshint: file.jshint};
 			},
 			fileCache: fileCache
 		});
-	}
-	return lazypipe()
-		.pipe(cachedJsHint)();
+	})();
 }
 
 function cachedJscs (jscsOptions) {
-	function cachedJscs () {
-		return cache(jscs(jscsOptions, {timeout: 450000}), {
+	return lazypipe().pipe(function cachedJscs () {
+		return cache(jscs(jscsOptions), {
 			key: function (file) {
-				var key = JSON.stringify(util._extend({file: file._contents.toString('utf8')}, environmentVersion));
-				if (('' + file.history).slice(-6) === 'app.js') {
-					console.log(file);
-					console.log('keyHash: ' + require('crypto').createHash('md5').update(key).digest('hex'));
-				}
-				return key;
+				return JSON.stringify(util._extend({file: file.contents.toString('utf8')}, environmentVersion));
 			},
 			success: function (file) {
-				console.log('JSCS success at ' + path.basename('' + file.history));
-				return file.jscs.success;
+				return file.jscs && file.jscs.success;
 			},
 			value: function (file) {
 				return {jscs: file.jscs};
 			},
 			fileCache: fileCache
 		});
-	}
-	return lazypipe()
-		.pipe(cachedJscs)();
-}
-
-function lint (jsHintOptions, jscsOptions) {
-	function cachedJsHint () {
-		return cache(jshint(jsHintOptions, {timeout: 450000}), {
-			success: function (file) {
-				return file.jshint.success;
-			},
-			value: function (file) {
-				return {jshint: file.jshint};
-			},
-			fileCache: fileCache
-		});
-	}
-	return lazypipe()
-		.pipe(cachedJsHint)
-		.pipe(jscs.bind(jscs, jscsOptions))();
+	})();
 }
 
 var jsHintOptions = {};
@@ -238,42 +212,40 @@ var lintData = [
 		jsHint: jsHintOptions.legacy,
 		jscs: jscsOptions.dataCompactAll
 	}, {
-		dirs: ['./data/learnsets*.js', './mods/*/learnsets.js'],
-		jsHint: jsHintOptions.legacy,
-		jscs: jscsOptions.dataCompactAllIndented
-	}, {
 		dirs: ['./test/*.js', './test/application/*.js', './test/simulator/*/*.js', './test/dev-tools/*/*.js'],
 		jsHint: jsHintOptions.test,
 		jscs: jscsOptions.base
 	}
 ];
-
-var linter = function () {
-	return (
-		merge.apply(
-			null,
-			lintData.map(function (source) {
-				return gulp.src(source.dirs)
-					.pipe(transformLet())
-					.pipe(lint(source.jsHint, source.jscs));
-			})
-		).pipe(jshint.reporter(jshintStylish))
-		 .pipe(jshint.reporter('fail'))
-	);
+lintData.extra = {
+	fastlint: lintData[0],
+	learnsets: {
+		dirs: ['./data/learnsets*.js', './mods/*/learnsets.js'],
+		jsHint: jsHintOptions.legacy,
+		jscs: jscsOptions.dataCompactAllIndented
+	}
 };
 
-gulp.task('fastlint', function () {
-	var source = lintData[0];
-	return gulp.src(source.dirs)
-		.pipe(transformLet())
-		.pipe(lint(source.jsHint, source.jscs))
+function lintSubTask (source) {
+	var src = gulp.src(source.dirs).pipe(transformLet());
+	return src.pipe(cachedJscs(source.jscs))
+		.pipe(cachedJsHint(source.jsHint))
+		.pipe(stylish.combineWithHintResults())
 		.pipe(jshint.reporter(jshintStylish))
 		.pipe(jshint.reporter('fail'));
-});
+}
+
+function lint () {
+	return merge.apply(null, lintData.map(lintSubTask));
+}
 
 gulp.task('clear', function (done) {
 	fileCache.clear('default', done);
 });
 
-gulp.task('lint', linter);
-gulp.task('default', linter);
+for (var extraTask in lintData.extra) {
+	gulp.task(extraTask, lintSubTask.bind(null, lintData.extra[extraTask]));
+}
+
+gulp.task('lint', lint);
+gulp.task('default', lint);
