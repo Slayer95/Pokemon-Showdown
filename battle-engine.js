@@ -68,7 +68,7 @@ global.string = function (str) {
 	return '';
 };
 
-global.Tools = require('./tools.js');
+global.Tools = require('./tools.js').includeData();
 
 var Battle, BattleSide, BattlePokemon;
 
@@ -1594,7 +1594,7 @@ Battle = (function () {
 				}
 				var battle = Object.create(proto);
 				var ret = Object.create(battle);
-				tools.install(ret);
+				tools.includeScripts(ret);
 				return (battleProtoCache[formatarg] = ret);
 			})());
 			Battle.prototype.init.call(battle, roomid, formatarg, rated);
