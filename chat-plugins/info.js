@@ -662,7 +662,7 @@ var commands = exports.commands = {
 				results.sort();
 				resultsStr = results.join(", ");
 			} else {
-				resultsStr = results.slice(0, output).join(", ") + ", and " + string(results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
+				resultsStr = results.slice(0, output).join(", ") + ", and " + (results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
 			}
 		} else {
 			resultsStr = "No Pok&eacute;mon found.";
@@ -1040,7 +1040,7 @@ var commands = exports.commands = {
 				results.sort();
 				resultsStr += results.join(", ");
 			} else {
-				resultsStr += results.slice(0, output).join(", ") + ", and " + string(results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
+				resultsStr += results.slice(0, output).join(", ") + ", and " + (results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
 			}
 		} else {
 			resultsStr = "No moves found.";
@@ -1271,7 +1271,7 @@ var commands = exports.commands = {
 				foundItems.sort();
 				resultsStr += foundItems.join(", ");
 			} else {
-				resultsStr += foundItems.slice(0, output).join(", ") + ", and " + string(foundItems.length - output) + " more. <font color=#999999>Redo the search with ', all' at the end to show all results.</font>";
+				resultsStr += foundItems.slice(0, output).join(", ") + ", and " + (foundItems.length - output) + " more. <font color=#999999>Redo the search with ', all' at the end to show all results.</font>";
 			}
 		} else {
 			resultsStr = "No items found. Try a more general search";
