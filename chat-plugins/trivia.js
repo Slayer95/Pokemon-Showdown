@@ -180,7 +180,7 @@ var Trivia = (function () {
 	Trivia.prototype.kickParticipant = function (output, target, user) {
 		if (this.participants.size < 3) return output.sendReply("The trivia game requires at least three participants in order to run.");
 
-		var userid = toId(target);
+		var userid = Tools.getId(target);
 		if (!userid) return output.sendReply("User '" + target + "' does not exist.");
 		if (!this.participants.has(userid)) return output.sendReply("User '" + target + "' is not a participant in this trivia game.");
 
@@ -386,7 +386,7 @@ var Trivia = (function () {
 			buffer += "</table><br />" +
 				Tools.escapeHTML(winner) + " won the game with a final score of <strong>" + score + "</strong>, and their leaderboard score has increased by <strong>" + this.prize + "</strong> points!</div>";
 			this.room.addRaw(buffer).update();
-			return this.updateLeaderboard(toId(winner));
+			return this.updateLeaderboard(Tools.getId(winner));
 		}
 
 		if (!this.currentQuestions.length) return this.stalemate();
@@ -434,7 +434,7 @@ var Trivia = (function () {
 		if (winner) {
 			buffer += Tools.escapeHTML(winner) + " won the game with a final score of <strong>" + score + "</strong>, and their leaderboard score has increased by <strong>" + this.prize + "</strong> points!</div>";
 			this.room.addRaw(buffer).update();
-			return this.updateLeaderboard(toId(winner));
+			return this.updateLeaderboard(Tools.getId(winner));
 		}
 
 		if (!this.currentQuestions.length) return this.stalemate();
@@ -554,13 +554,13 @@ var commands = {
 		target = target.split(',');
 		if (target.length !== 3) return this.sendReply("Invallid arguments specified. View /help trivia for more information.");
 
-		var mode = toId(target[0]);
+		var mode = Tools.getId(target[0]);
 		if (!MODES[mode]) return this.sendReply("'" + target[0].trim() + "' is not a valid mode. View /help trivia for more information.");
 
-		var category = toId(target[1]);
+		var category = Tools.getId(target[1]);
 		if (!CATEGORIES[category]) return this.sendReply("'" + target[1].trim() + "' is not a valid category. View /help trivia for more information.");
 
-		var scoreCap = SCORE_CAPS[toId(target[2])];
+		var scoreCap = SCORE_CAPS[Tools.getId(target[2])];
 		if (!scoreCap) return this.sendReply("'" + target[2].trim() + "' is not a valid score cap. View /help trivia for more information.");
 
 		trivia[room.id] = new Trivia(mode, category, scoreCap, room);
@@ -602,7 +602,7 @@ var commands = {
 	answer: function (target, room, user) {
 		if (room.id !== 'trivia') return false;
 
-		target = toId(target);
+		target = Tools.getId(target);
 		if (!target) return this.sendReply("No valid answer was specified.");
 
 		var trivium = trivia[room.id];
@@ -629,7 +629,7 @@ var commands = {
 		target = target.split('|');
 		if (target.length !== 3) return this.sendReply("Invalid arguments specified. View /help trivia for more information.");
 
-		var category = toId(target[0]);
+		var category = Tools.getId(target[0]);
 		if (category === 'random') return false;
 		if (!CATEGORIES[category]) return this.sendReply("'" + target[0].trim() + "' is not a valid category. View /help trivia for more information.");
 
@@ -641,7 +641,7 @@ var commands = {
 		var answers = target[2].split(',');
 		var i;
 		for (i = 0; i < answers.length; i++) {
-			answers[i] = toId(answers[i]);
+			answers[i] = Tools.getId(answers[i]);
 		}
 		while (i--) {
 			if (answers.indexOf(answers[i]) !== i) answers.splice(i, 1);
@@ -705,7 +705,7 @@ var commands = {
 		var submissions = triviaData.submissions;
 		var submissionsLen = submissions.length;
 
-		if (toId(target) === 'all') {
+		if (Tools.getId(target) === 'all') {
 			if (isAccepting) {
 				for (var i = 0; i < submissionsLen; i++) {
 					var submission = submissions[i];
@@ -830,7 +830,7 @@ var commands = {
 
 		if (!this.can('mute', null, room)) return false;
 
-		var category = toId(target);
+		var category = Tools.getId(target);
 		if (category === 'random') return false;
 		if (!CATEGORIES[category]) return this.sendReply("'" + target + "' is not a valid category. View /help trivia for more information.");
 
@@ -893,7 +893,7 @@ var commands = {
 		} else {
 			target = this.splitTarget(target, true);
 			name = Tools.escapeHTML(this.targetUsername);
-			userid = toId(name);
+			userid = Tools.getId(name);
 		}
 
 		var score = triviaData.leaderboard[userid];

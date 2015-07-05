@@ -67,7 +67,7 @@ exports.BattleFormats = {
 				// If you use Marowak with Thick Club, we'll be gentle enough to deal with your Attack DVs.
 				// This is only done because the gen 6 Teambuilder is confusing, using IVs and all.
 				var marowakClub = false;
-				if (toId(set.item) === 'thickclub' && set.species === 'Marowak' && hasSD) {
+				if (this.getId(set.item) === 'thickclub' && set.species === 'Marowak' && hasSD) {
 					set.ivs.atk = 26;
 					marowakClub = true;
 				}

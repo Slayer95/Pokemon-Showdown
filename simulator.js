@@ -78,7 +78,7 @@ var Battle = (function () {
 
 		this.id = id;
 		this.room = room;
-		this.format = toId(format);
+		this.format = Tools.getId(format);
 		this.players = [null, null];
 		this.playerids = [null, null];
 		this.playerTable = {};
@@ -117,7 +117,7 @@ var Battle = (function () {
 		this.process.send('' + this.id + '|' + slice.call(arguments).join('|'));
 	};
 	Battle.prototype.sendFor = function (user, action) {
-		var player = this.playerTable[toId(user)];
+		var player = this.playerTable[Tools.getId(user)];
 		if (!player) {
 			console.log('SENDFOR FAILED in ' + this.id + ': Player doesn\'t exist: ' + user.name);
 			return;
@@ -127,7 +127,7 @@ var Battle = (function () {
 	};
 	Battle.prototype.sendForOther = function (user, action) {
 		var opposite = {'p1':'p2', 'p2':'p1'};
-		var player = this.playerTable[toId(user)];
+		var player = this.playerTable[Tools.getId(user)];
 		if (!player) return;
 
 		this.send.apply(this, [action, opposite[player]].concat(slice.call(arguments, 2)));

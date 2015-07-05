@@ -13,6 +13,64 @@
 
 var fs = require('fs');
 
+/**
+ * Safely ensures the passed variable is a string
+ * Simply doing '' + str can crash if str.toString crashes or isn't a function
+ * If we're expecting a string and being given anything that isn't a string
+ * or a number, it's safe to assume it's an error, and return ''
+ */
+
+function getString (str) {
+	if (typeof str === 'string' || typeof str === 'number') return '' + str;
+	return '';
+}
+
+/**
+ * Sanitizes a username or Pokemon nickname
+ *
+ * Returns the passed name, sanitized for safe use as a name in the PS
+ * protocol.
+ *
+ * Such a string must uphold these guarantees:
+ * - must not contain any ASCII whitespace character other than a space
+ * - must not start or end with a space character
+ * - must not contain any of: | , [ ]
+ * - must not be the empty string
+ *
+ * If no such string can be found, returns the empty string. Calling
+ * functions are expected to check for that condition and deal with it
+ * accordingly.
+ *
+ * getName also enforces that there are not multiple space characters
+ * in the name, although this is not strictly necessary for safety.
+ */
+
+function getName (name) {
+	name = getString(name);
+	name = name.replace(/[\|\s\[\]\,]+/g, ' ').trim();
+	if (name.length > 18) name = name.substr(0, 18).trim();
+	return name;
+}
+
+/**
+ * Converts anything to an ID. An ID must have only lowercase alphanumeric
+ * characters.
+ * If a string is passed, it will be converted to lowercase and
+ * non-alphanumeric characters will be stripped.
+ * If an object with an ID is passed, its ID will be returned.
+ * Otherwise, an empty string will be returned.
+ */
+
+function getId (text) {
+	if (text && text.id) {
+		text = text.id;
+	} else if (text && text.userid) {
+		text = text.userid;
+	}
+
+	return getString(text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
 module.exports = (function () {
 	var moddedTools = {};
 
@@ -144,13 +202,18 @@ module.exports = (function () {
 		default: return 0;
 		}
 	};
+
+	Tools.prototype.getString = getString;
+	Tools.prototype.getName = getName;
+	Tools.prototype.getId = getId;
+
 	Tools.prototype.getTemplate = function (template) {
 		if (!template || typeof template === 'string') {
 			var name = (template || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			if (this.data.Aliases[id]) {
 				name = this.data.Aliases[id];
-				id = toId(name);
+				id = this.getId(name);
 			}
 			template = {};
 			if (id && this.data.Pokedex[id]) {
@@ -173,7 +236,7 @@ module.exports = (function () {
 			if (!template.baseSpecies) template.baseSpecies = name;
 			if (!template.forme) template.forme = '';
 			if (!template.formeLetter) template.formeLetter = '';
-			if (!template.spriteid) template.spriteid = toId(template.baseSpecies) + (template.baseSpecies !== name ? '-' + toId(template.forme) : '');
+			if (!template.spriteid) template.spriteid = this.getId(template.baseSpecies) + (template.baseSpecies !== name ? '-' + this.getId(template.forme) : '');
 			if (!template.prevo) template.prevo = '';
 			if (!template.evos) template.evos = [];
 			if (!template.nfe) template.nfe = !!template.evos.length;
@@ -182,7 +245,7 @@ module.exports = (function () {
 			if (!template.genderRatio && template.gender === 'F') template.genderRatio = {M:0, F:1};
 			if (!template.genderRatio && template.gender === 'N') template.genderRatio = {M:0, F:0};
 			if (!template.genderRatio) template.genderRatio = {M:0.5, F:0.5};
-			if (!template.tier && template.baseSpecies !== template.species) template.tier = this.data.FormatsData[toId(template.baseSpecies)].tier;
+			if (!template.tier && template.baseSpecies !== template.species) template.tier = this.data.FormatsData[this.getId(template.baseSpecies)].tier;
 			if (!template.tier) template.tier = 'Illegal';
 			if (!template.gen) {
 				if (template.forme && template.forme in {'Mega':1, 'Mega-X':1, 'Mega-Y':1}) {
@@ -213,10 +276,10 @@ module.exports = (function () {
 	Tools.prototype.getMove = function (move) {
 		if (!move || typeof move === 'string') {
 			var name = (move || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			if (this.data.Aliases[id]) {
 				name = this.data.Aliases[id];
-				id = toId(name);
+				id = this.getId(name);
 			}
 			move = {};
 			if (id.substr(0, 11) === 'hiddenpower') {
@@ -282,7 +345,7 @@ module.exports = (function () {
 	Tools.prototype.getEffect = function (effect) {
 		if (!effect || typeof effect === 'string') {
 			var name = (effect || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			effect = {};
 			if (id && this.data.Statuses[id]) {
 				effect = this.data.Statuses[id];
@@ -322,10 +385,10 @@ module.exports = (function () {
 	Tools.prototype.getFormat = function (effect) {
 		if (!effect || typeof effect === 'string') {
 			var name = (effect || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			if (this.data.Aliases[id]) {
 				name = this.data.Aliases[id];
-				id = toId(name);
+				id = this.getId(name);
 			}
 			effect = {};
 			if (id && this.data.Formats[id]) {
@@ -348,10 +411,10 @@ module.exports = (function () {
 	Tools.prototype.getItem = function (item) {
 		if (!item || typeof item === 'string') {
 			var name = (item || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			if (this.data.Aliases[id]) {
 				name = this.data.Aliases[id];
-				id = toId(name);
+				id = this.getId(name);
 			}
 			item = {};
 			if (id && this.data.Items[id]) {
@@ -388,7 +451,7 @@ module.exports = (function () {
 	Tools.prototype.getAbility = function (ability) {
 		if (!ability || typeof ability === 'string') {
 			var name = (ability || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			ability = {};
 			if (id && this.data.Abilities[id]) {
 				ability = this.data.Abilities[id];
@@ -420,7 +483,7 @@ module.exports = (function () {
 	};
 	Tools.prototype.getType = function (type) {
 		if (!type || typeof type === 'string') {
-			var id = toId(type);
+			var id = this.getId(type);
 			id = id.charAt(0).toUpperCase() + id.substr(1);
 			type = {};
 			if (id && this.data.TypeChart[id]) {
@@ -442,7 +505,7 @@ module.exports = (function () {
 	Tools.prototype.getNature = function (nature) {
 		if (!nature || typeof nature === 'string') {
 			var name = (nature || '').trim();
-			var id = toId(name);
+			var id = this.getId(name);
 			nature = {};
 			if (id && this.data.Natures[id]) {
 				nature = this.data.Natures[id];
@@ -480,23 +543,23 @@ module.exports = (function () {
 			if (subformat.banlist) {
 				for (var i = 0; i < subformat.banlist.length; i++) {
 					// don't revalidate what we already validate
-					if (banlistTable[toId(subformat.banlist[i])]) continue;
+					if (banlistTable[this.getId(subformat.banlist[i])]) continue;
 
 					banlistTable[subformat.banlist[i]] = subformat.name || true;
-					banlistTable[toId(subformat.banlist[i])] = subformat.name || true;
+					banlistTable[this.getId(subformat.banlist[i])] = subformat.name || true;
 
 					var complexList;
 					if (subformat.banlist[i].includes('+')) {
 						if (subformat.banlist[i].includes('++')) {
 							complexList = subformat.banlist[i].split('++');
 							for (var j = 0; j < complexList.length; j++) {
-								complexList[j] = toId(complexList[j]);
+								complexList[j] = this.getId(complexList[j]);
 							}
 							format.teamBanTable.push(complexList);
 						} else {
 							complexList = subformat.banlist[i].split('+');
 							for (var j = 0; j < complexList.length; j++) {
-								complexList[j] = toId(complexList[j]);
+								complexList[j] = this.getId(complexList[j]);
 							}
 							format.setBanTable.push(complexList);
 						}
@@ -506,9 +569,9 @@ module.exports = (function () {
 			if (subformat.ruleset) {
 				for (var i = 0; i < subformat.ruleset.length; i++) {
 					// don't revalidate what we already validate
-					if (banlistTable['Rule:' + toId(subformat.ruleset[i])]) continue;
+					if (banlistTable['Rule:' + this.getId(subformat.ruleset[i])]) continue;
 
-					banlistTable['Rule:' + toId(subformat.ruleset[i])] = subformat.ruleset[i];
+					banlistTable['Rule:' + this.getId(subformat.ruleset[i])] = subformat.ruleset[i];
 					if (format.ruleset.indexOf(subformat.ruleset[i]) < 0) format.ruleset.push(subformat.ruleset[i]);
 
 					var subsubformat = this.getFormat(subformat.ruleset[i]);
@@ -665,22 +728,22 @@ module.exports = (function () {
 			buf += (set.name || set.species);
 
 			// species
-			var id = toId(set.species || set.name);
-			buf += '|' + (toId(set.name || set.species) === id ? '' : id);
+			var id = this.getId(set.species || set.name);
+			buf += '|' + (this.getId(set.name || set.species) === id ? '' : id);
 
 			// item
-			buf += '|' + toId(set.item);
+			buf += '|' + this.getId(set.item);
 
 			// ability
 			var template = moddedTools.base.getTemplate(set.species || set.name);
 			var abilities = template.abilities;
-			id = toId(set.ability);
+			id = this.getId(set.ability);
 			if (abilities) {
-				if (id === toId(abilities['0'])) {
+				if (id === this.getId(abilities['0'])) {
 					buf += '|';
-				} else if (id === toId(abilities['1'])) {
+				} else if (id === this.getId(abilities['1'])) {
 					buf += '|1';
-				} else if (id === toId(abilities['H'])) {
+				} else if (id === this.getId(abilities['H'])) {
 					buf += '|H';
 				} else {
 					buf += '|' + id;
@@ -690,7 +753,7 @@ module.exports = (function () {
 			}
 
 			// moves
-			buf += '|' + set.moves.map(toId).join(',');
+			buf += '|' + set.moves.map(this.getId).join(',');
 
 			// nature
 			buf += '|' + set.nature;
@@ -940,7 +1003,7 @@ module.exports = (function () {
 			var path = './data/' + dataFiles.Aliases;
 			this.data.Aliases = require(path).BattleAliases;
 		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING ALIASES:" + e.stack);
+			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING ALIASES:\n" + e.stack);
 		}
 
 		// Load formats
@@ -949,14 +1012,14 @@ module.exports = (function () {
 			var configFormats = require(path).Formats;
 			for (var i = 0; i < configFormats.length; i++) {
 				var format = configFormats[i];
-				var id = toId(format.name);
+				var id = this.getId(format.name);
 				format.effectType = 'Format';
 				if (format.challengeShow === undefined) format.challengeShow = true;
 				if (format.searchShow === undefined) format.searchShow = true;
 				this.data.Formats[id] = format;
 			}
 		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS: " + e.stack);
+			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS:\n" + e.stack);
 		}
 
 		this.formatsLoaded = true;

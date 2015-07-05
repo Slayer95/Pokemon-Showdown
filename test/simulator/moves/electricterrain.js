@@ -93,7 +93,7 @@ describe('Electric Terrain', function () {
 		battle.join('p1', 'Guest 1', 1, [{species: "Jolteon", ability: 'voltabsorb', moves: ['electricterrain']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Shuckle", ability: 'sturdy', moves: ['naturepower']}]);
 		battle.commitDecisions();
-		var resultMove = toId(battle.log[battle.lastMoveLine].split('|')[3]);
-		assert.strictEqual(resultMove, 'thunderbolt');
+		var resultMove = battle.log[battle.lastMoveLine].split('|')[3];
+		assert.strictEqual(battle.getMove(resultMove).id, 'thunderbolt');
 	});
 });

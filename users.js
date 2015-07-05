@@ -57,7 +57,7 @@ var numUsers = 0;
 function getUser(name, exactName) {
 	if (!name || name === '!') return null;
 	if (name && name.userid) return name;
-	var userid = toId(name);
+	var userid = Tools.getId(name);
 	var i = 0;
 	while (!exactName && userid && !users[userid] && i < 1000) {
 		userid = prevUsers[userid];
@@ -124,7 +124,7 @@ Users.checkRangeBanned = function () {};
 
 function unban(name) {
 	var success;
-	var userid = toId(name);
+	var userid = Tools.getId(name);
 	for (var ip in bannedIps) {
 		if (bannedIps[ip] === userid) {
 			delete bannedIps[ip];
@@ -141,7 +141,7 @@ function unban(name) {
 	return false;
 }
 function unlock(name, unlocked, noRecurse) {
-	var userid = toId(name);
+	var userid = Tools.getId(name);
 	var user = getUser(userid);
 	var userips = null;
 	if (user) {
@@ -393,7 +393,7 @@ function importUsergroups() {
 		for (var i = 0; i < data.length; i++) {
 			if (!data[i]) continue;
 			var row = data[i].split(",");
-			usergroups[toId(row[0])] = (row[1] || Config.groupsranking[0]) + row[0];
+			usergroups[Tools.getId(row[0])] = (row[1] || Config.groupsranking[0]) + row[0];
 		}
 	});
 }
@@ -455,7 +455,7 @@ function cacheGroupData() {
 cacheGroupData();
 
 Users.setOfflineGroup = function (name, group, force) {
-	var userid = toId(name);
+	var userid = Tools.getId(name);
 	var user = getExactUser(userid);
 	if (force && (user || usergroups[userid])) return false;
 	if (user) {
@@ -490,7 +490,7 @@ User = (function () {
 		this.name = 'Guest ' + numUsers;
 		this.named = false;
 		this.registered = false;
-		this.userid = toId(this.name);
+		this.userid = Tools.getId(this.name);
 		this.group = Config.groupsranking[0];
 
 		var trainersprites = [1, 2, 101, 102, 169, 170, 265, 266];
@@ -679,14 +679,14 @@ User = (function () {
 	};
 	User.prototype.resetName = function () {
 		var name = 'Guest ' + this.guestNum;
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 		if (this.userid === userid) return;
 
 		var i = 0;
 		while (users[userid] && users[userid] !== this) {
 			this.guestNum++;
 			name = 'Guest ' + this.guestNum;
-			userid = toId(name);
+			userid = Tools.getId(name);
 			if (i > 1000) return false;
 		}
 
@@ -731,7 +731,7 @@ User = (function () {
 		if (Config.namefilter) {
 			name = Config.namefilter(name, this);
 		}
-		name = toName(name);
+		name = Tools.getName(name);
 		name = name.replace(/^[^A-Za-z0-9]+/, "");
 		return name;
 	};
@@ -770,7 +770,7 @@ User = (function () {
 		}
 
 		name = this.filterName(name);
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 		if (this.registered) newlyRegistered = false;
 
 		if (!userid) {
@@ -807,7 +807,7 @@ User = (function () {
 		return false;
 	};
 	User.prototype.validateRename = function (name, tokenData, newlyRegistered, challenge) {
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 
 		var tokenDataSplit = tokenData.split(',');
 
@@ -933,7 +933,7 @@ User = (function () {
 	};
 	User.prototype.forceRename = function (name, registered) {
 		// skip the login server
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 
 		if (users[userid] && users[userid] !== this) {
 			return false;
@@ -1247,7 +1247,7 @@ User = (function () {
 	User.prototype.doWithMMR = function (formatid, callback) {
 		var self = this;
 		var userid = this.userid;
-		formatid = toId(formatid);
+		formatid = Tools.getId(formatid);
 
 		// this should relieve login server strain
 		// this.mmrCache[formatid] = 1000;
@@ -1362,8 +1362,8 @@ User = (function () {
 			}
 		}
 
-		if (Rooms.aliases[toId(roomid)] === room) {
-			connection.send(">" + toId(roomid) + "\n|deinit");
+		if (Rooms.aliases[Tools.getId(roomid)] === room) {
+			connection.send(">" + Tools.getId(roomid) + "\n|deinit");
 		}
 
 		var joinResult = this.joinRoom(room, connection);
@@ -1542,7 +1542,7 @@ User = (function () {
 		if (user) user.updateChallenges();
 	};
 	User.prototype.rejectChallengeFrom = function (user) {
-		var userid = toId(user);
+		var userid = Tools.getId(user);
 		user = getUser(user);
 		if (this.challengesFrom[userid]) {
 			delete this.challengesFrom[userid];
@@ -1557,7 +1557,7 @@ User = (function () {
 		this.updateChallenges();
 	};
 	User.prototype.acceptChallengeFrom = function (user) {
-		var userid = toId(user);
+		var userid = Tools.getId(user);
 		user = getUser(user);
 		if (!user || !user.challengeTo || user.challengeTo.to !== this.userid || !this.connected || !user.connected) {
 			if (this.challengesFrom[userid]) {

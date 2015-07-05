@@ -555,7 +555,7 @@ exports.BattleMovedex = {
 				disabled: false,
 				used: false
 			};
-			source.moves[moveslot] = toId(move.name);
+			source.moves[moveslot] = this.getId(move.name);
 			this.add('-start', source, 'Mimic', move.name);
 		}
 	},

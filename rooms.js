@@ -140,7 +140,7 @@ var Room = (function () {
 		return alts;
 	};
 	Room.prototype.unRoomBan = function (userid, noRecurse) {
-		userid = toId(userid);
+		userid = Tools.getId(userid);
 		var successUserid = false;
 		for (var i in this.bannedUsers) {
 			var entry = this.bannedUsers[i];
@@ -322,7 +322,7 @@ var GlobalRoom = (function () {
 				console.log('ERROR: Room number ' + i + ' has no data.');
 				continue;
 			}
-			var id = toId(this.chatRoomData[i].title);
+			var id = Tools.getId(this.chatRoomData[i].title);
 			if (!Config.quietconsole) console.log("NEW CHATROOM: " + id);
 			var room = Rooms.createChatRoom(id, this.chatRoomData[i].title, this.chatRoomData[i]);
 			if (room.aliases) {
@@ -647,7 +647,7 @@ var GlobalRoom = (function () {
 		return this;
 	};
 	GlobalRoom.prototype.addChatRoom = function (title) {
-		var id = toId(title);
+		var id = Tools.getId(title);
 		if (rooms[id]) return false;
 
 		var chatRoomData = {
@@ -660,7 +660,7 @@ var GlobalRoom = (function () {
 		return true;
 	};
 	GlobalRoom.prototype.deregisterChatRoom = function (id) {
-		id = toId(id);
+		id = Tools.getId(id);
 		var room = rooms[id];
 		if (!room) return false; // room doesn't exist
 		if (!room.chatRoomData) return false; // room isn't registered
@@ -669,7 +669,7 @@ var GlobalRoom = (function () {
 		// assumption is that more recently added rooms are more likely to
 		// be deleted
 		for (var i = this.chatRoomData.length - 1; i >= 0; i--) {
-			if (id === toId(this.chatRoomData[i].title)) {
+			if (id === Tools.getId(this.chatRoomData[i].title)) {
 				this.chatRoomData.splice(i, 1);
 				this.writeChatRoomData();
 				break;
@@ -679,7 +679,7 @@ var GlobalRoom = (function () {
 		return true;
 	};
 	GlobalRoom.prototype.delistChatRoom = function (id) {
-		id = toId(id);
+		id = Tools.getId(id);
 		if (!rooms[id]) return false; // room doesn't exist
 		for (var i = this.chatRooms.length - 1; i >= 0; i--) {
 			if (id === this.chatRooms[i].id) {
@@ -689,7 +689,7 @@ var GlobalRoom = (function () {
 		}
 	};
 	GlobalRoom.prototype.removeChatRoom = function (id) {
-		id = toId(id);
+		id = Tools.getId(id);
 		var room = rooms[id];
 		if (!room) return false; // room doesn't exist
 		room.destroy();
@@ -843,7 +843,7 @@ var BattleRoom = (function () {
 		this.auth = {};
 		//console.log("NEW BATTLE");
 
-		var formatid = toId(format);
+		var formatid = Tools.getId(format);
 
 		// Sometimes we might allow BattleRooms to have no options
 		if (!options) {
@@ -903,7 +903,7 @@ var BattleRoom = (function () {
 	BattleRoom.prototype.win = function (winner) {
 		// Declare variables here in case we need them for non-rated battles logging.
 		var p1score = 0.5;
-		var winnerid = toId(winner);
+		var winnerid = Tools.getId(winner);
 
 		// Check if the battle was rated to update the ladder, return its response, and log the battle.
 		if (this.rated) {
@@ -921,7 +921,7 @@ var BattleRoom = (function () {
 			var p2 = Users.getExact(rated.p2);
 			var p2name = p2 ? p2.name : rated.p2;
 
-			//update.updates.push('[DEBUG] uri: ' + Config.loginserver + 'action.php?act=ladderupdate&serverid=' + Config.serverid + '&p1=' + encodeURIComponent(p1) + '&p2=' + encodeURIComponent(p2) + '&score=' + p1score + '&format=' + toId(rated.format) + '&servertoken=[token]');
+			//update.updates.push('[DEBUG] uri: ' + Config.loginserver + 'action.php?act=ladderupdate&serverid=' + Config.serverid + '&p1=' + encodeURIComponent(p1) + '&p2=' + encodeURIComponent(p2) + '&score=' + p1score + '&format=' + Tools.getId(rated.format) + '&servertoken=[token]');
 
 			if (!rated.p1 || !rated.p2) {
 				this.push('|raw|ERROR: Ladder not updated: a player does not exist');
@@ -938,7 +938,7 @@ var BattleRoom = (function () {
 					p1: p1name,
 					p2: p2name,
 					score: p1score,
-					format: toId(rated.format)
+					format: Tools.getId(rated.format)
 				}, function (data, statusCode, error) {
 					if (!self.battle) {
 						console.log('room expired before ladder update was received');
@@ -1004,7 +1004,7 @@ var BattleRoom = (function () {
 			}
 		}
 		if (this.tour) {
-			var winnerid = toId(winner);
+			var winnerid = Tools.getId(winner);
 			winner = Users.get(winner);
 			var tour = this.tour.tour;
 			tour.onBattleWin(this, winner);
@@ -1769,7 +1769,7 @@ function getRoom(roomid, fallback) {
 }
 Rooms.get = getRoom;
 Rooms.search = function (name, fallback) {
-	return getRoom(name) || getRoom(toId(name)) || Rooms.aliases[toId(name)] || (fallback ? rooms.global : undefined);
+	return getRoom(name) || getRoom(Tools.getId(name)) || Rooms.aliases[Tools.getId(name)] || (fallback ? rooms.global : undefined);
 };
 
 Rooms.createBattle = function (roomid, format, p1, p2, options) {

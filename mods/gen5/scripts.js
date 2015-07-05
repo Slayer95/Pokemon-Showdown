@@ -53,7 +53,7 @@ exports.BattleScripts = {
 		do {
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
 			while (moves.length < 4 && j < moveKeys.length) {
-				var moveid = toId(moveKeys[j]);
+				var moveid = this.getId(moveKeys[j]);
 				j++;
 				if (moveid.substr(0, 11) === 'hiddenpower') {
 					if (!hasMove['hiddenpower']) {

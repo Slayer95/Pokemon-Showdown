@@ -109,49 +109,6 @@ if (!process.send) {
 		});
 	}
 
-	/**
-	 * Converts anything to an ID. An ID must have only lowercase alphanumeric
-	 * characters.
-	 * If a string is passed, it will be converted to lowercase and
-	 * non-alphanumeric characters will be stripped.
-	 * If an object with an ID is passed, its ID will be returned.
-	 * Otherwise, an empty string will be returned.
-	 */
-	global.toId = function (text) {
-		if (text && text.id) {
-			text = text.id;
-		} else if (text && text.userid) {
-			text = text.userid;
-		}
-
-		return string(text).toLowerCase().replace(/[^a-z0-9]+/g, '');
-	};
-
-	/**
-	 * Validates a username or Pokemon nickname
-	 */
-	var bannedNameStartChars = {'~':1, '&':1, '@':1, '%':1, '+':1, '-':1, '!':1, '?':1, '#':1, ' ':1};
-	global.toName = function (name) {
-		name = string(name);
-		name = name.replace(/[\|\s\[\]\,]+/g, ' ').trim();
-		while (bannedNameStartChars[name.charAt(0)]) {
-			name = name.substr(1);
-		}
-		if (name.length > 18) name = name.substr(0, 18);
-		return name.trim();
-	};
-
-	/**
-	 * Safely ensures the passed variable is a string
-	 * Simply doing '' + str can crash if str.toString crashes or isn't a function
-	 * If we're expecting a string and being given anything that isn't a string
-	 * or a number, it's safe to assume it's an error, and return ''
-	 */
-	global.string = function (str) {
-		if (typeof str === 'string' || typeof str === 'number') return '' + str;
-		return '';
-	};
-
 	global.Tools = require('./tools.js').includeData();
 
 	require('./repl.js').start('team-validator-', process.pid, function (cmd) { return eval(cmd); });
@@ -201,6 +158,21 @@ if (!process.send) {
 		process.exit();
 	});
 }
+
+/**
+ * Validates a username or Pokemon nickname
+ */
+
+var toName = (function () {
+	var bannedNameStartChars = {'~':1, '&':1, '@':1, '%':1, '+':1, '-':1, '!':1, '?':1, '#':1, ' ':1};
+	return function (name) {
+		name = Tools.getName(name);
+		while (bannedNameStartChars[name.charAt(0)]) {
+			name = name.slice(1);
+		}
+		return name;
+	};
+})();
 
 Validator = (function () {
 	function Validator(format) {
@@ -287,16 +259,16 @@ Validator = (function () {
 			return ["This is not a Pokemon."];
 		}
 
-		var template = tools.getTemplate(string(set.species));
+		var template = tools.getTemplate(Tools.getString(set.species));
 		if (!template.exists) {
 			return ["The Pokemon '" + set.species + "' does not exist."];
 		}
 		set.species = template.species;
 
 		set.name = toName(set.name);
-		var item = tools.getItem(string(set.item));
+		var item = tools.getItem(Tools.getString(set.item));
 		set.item = item.name;
-		var ability = tools.getAbility(string(set.ability));
+		var ability = tools.getAbility(Tools.getString(set.ability));
 		set.ability = ability.name;
 		if (!Array.isArray(set.moves)) set.moves = [];
 
@@ -354,20 +326,20 @@ Validator = (function () {
 			clause = typeof banlistTable[check] === 'string' ? " by " + banlistTable[check] : '';
 			problems.push(set.species + ' is banned' + clause + '.');
 		} else if (!tools.data.FormatsData[check] || !tools.data.FormatsData[check].tier) {
-			check = toId(template.baseSpecies);
+			check = Tools.getId(template.baseSpecies);
 			if (banlistTable[check]) {
 				clause = typeof banlistTable[check] === 'string' ? " by " + banlistTable[check] : '';
 				problems.push(template.baseSpecies + ' is banned' + clause + '.');
 			}
 		}
 
-		check = toId(set.ability);
+		check = Tools.getId(set.ability);
 		setHas[check] = true;
 		if (banlistTable[check]) {
 			clause = typeof banlistTable[check] === 'string' ? " by " + banlistTable[check] : '';
 			problems.push(name + "'s ability " + set.ability + " is banned" + clause + ".");
 		}
-		check = toId(set.item);
+		check = Tools.getId(set.item);
 		setHas[check] = true;
 		if (banlistTable[check]) {
 			clause = typeof banlistTable[check] === 'string' ? " by " + banlistTable[check] : '';
@@ -381,7 +353,7 @@ Validator = (function () {
 				problems.push(name + " (" + template.species + ") is unreleased.");
 			}
 		}
-		setHas[toId(set.ability)] = true;
+		setHas[Tools.getId(set.ability)] = true;
 		if (banlistTable['illegal']) {
 			// Don't check abilities for metagames with All Abilities
 			if (tools.gen <= 2) {
@@ -424,7 +396,7 @@ Validator = (function () {
 
 			for (var i = 0; i < set.moves.length; i++) {
 				if (!set.moves[i]) continue;
-				var move = tools.getMove(string(set.moves[i]));
+				var move = tools.getMove(Tools.getString(set.moves[i]));
 				set.moves[i] = move.name;
 				check = move.id;
 				setHas[check] = true;
@@ -522,7 +494,7 @@ Validator = (function () {
 				}
 			}
 		}
-		setHas[toId(template.tier)] = true;
+		setHas[Tools.getId(template.tier)] = true;
 		if (banlistTable[template.tier]) {
 			problems.push(name + " is in " + template.tier + ", which is banned.");
 		}
@@ -561,7 +533,7 @@ Validator = (function () {
 	Validator.prototype.checkLearnset = function (move, template, lsetData) {
 		var tools = this.tools;
 
-		move = toId(move);
+		move = Tools.getId(move);
 		template = tools.getTemplate(template);
 
 		lsetData = lsetData || {};

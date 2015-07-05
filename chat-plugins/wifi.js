@@ -67,7 +67,7 @@ var QuestionGiveAway = (function () {
 		if (!this.answered[userid]) this.answered[userid] = 0;
 		if (this.answered[userid] >= 3) return output.sendReply("You have already guessed three times. You cannot guess anymore in this giveaway.");
 
-		if (toId(guess) in this.answers) {
+		if (Tools.getId(guess) in this.answers) {
 			this.winner = user;
 			return this.onEnd();
 		}
@@ -131,8 +131,8 @@ var QuestionGiveAway = (function () {
 		var ret = {};
 		target.split("/").forEach(function (ans) {
 			ans = ans.replace(/[^a-z0-9 ]+/ig, "").trim();
-			if (!toId(ans)) return;
-			ret[toId(ans)] = ans.toLowerCase();
+			if (!Tools.getId(ans)) return;
+			ret[Tools.getId(ans)] = ans.toLowerCase();
 		});
 		return ret;
 	};

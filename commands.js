@@ -49,7 +49,7 @@ var commands = exports.commands = {
 		Object.keys(rankLists).sort(function (a, b) {
 			return (Config.groups[b] || {rank: 0}).rank - (Config.groups[a] || {rank: 0}).rank;
 		}).forEach(function (r) {
-			buffer.push((Config.groups[r] ? Config.groups[r].name + "s (" + r + ")" : r) + ":\n" + rankLists[r].sortBy(toId).join(", "));
+			buffer.push((Config.groups[r] ? Config.groups[r].name + "s (" + r + ")" : r) + ":\n" + rankLists[r].sortBy(Tools.getId).join(", "));
 		});
 
 		if (!buffer.length) buffer = "This server has no auth.";
@@ -255,7 +255,7 @@ var commands = exports.commands = {
 			return this.sendReply("Room titles can't contain any of: ,|[-");
 		}
 
-		var id = toId(target);
+		var id = Tools.getId(target);
 		if (!id) return this.parse('/help makechatroom');
 		if (Rooms.rooms[id]) return this.sendReply("The room '" + target + "' already exists.");
 		if (Rooms.global.addChatRoom(target)) {
@@ -275,7 +275,7 @@ var commands = exports.commands = {
 
 	deregisterchatroom: function (target, room, user) {
 		if (!this.can('makeroom')) return;
-		var id = toId(target);
+		var id = Tools.getId(target);
 		if (!id) return this.parse('/help deregisterchatroom');
 		var targetRoom = Rooms.search(id);
 		if (!targetRoom) return this.sendReply("The room '" + target + "' doesn't exist.");
@@ -449,7 +449,7 @@ var commands = exports.commands = {
 			return this.sendReplyBox("This room has the following aliases: " + room.chatRoomData.aliases.join(", ") + "");
 		}
 		if (!this.can('setalias')) return false;
-		var alias = toId(target);
+		var alias = Tools.getId(target);
 		if (!alias.length) return this.sendReply("Only alphanumeric characters are valid in an alias.");
 		if (Rooms.get(alias) || Rooms.aliases[alias]) return this.sendReply("You cannot set an alias to an existing room or alias.");
 
@@ -465,7 +465,7 @@ var commands = exports.commands = {
 		if (!room.chatRoomData) return this.sendReply("This room isn't designed for aliases.");
 		if (!room.chatRoomData.aliases) return this.sendReply("This room does not have any aliases.");
 		if (!this.can('setalias')) return false;
-		var alias = toId(target);
+		var alias = Tools.getId(target);
 		if (!alias.length || !Rooms.aliases[alias]) return this.sendReply("Please specify an existing alias.");
 		if (Rooms.aliases[alias] !== room) return this.sendReply("You may only remove an alias from the current room.");
 
@@ -511,7 +511,7 @@ var commands = exports.commands = {
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
 		var name = this.targetUsername;
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 		if (!userid || userid === '') return this.sendReply("User '" + name + "' does not exist.");
 
 		if (room.auth[userid] !== '#') return this.sendReply("User '" + name + "' is not a room owner.");
@@ -536,7 +536,7 @@ var commands = exports.commands = {
 
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
-		var userid = toId(this.targetUsername);
+		var userid = Tools.getId(this.targetUsername);
 		var name = targetUser ? targetUser.name : this.targetUsername;
 
 		if (!userid) return this.parse('/help roompromote');
@@ -625,7 +625,7 @@ var commands = exports.commands = {
 	},
 
 	userauth: function (target, room, user, connection) {
-		var targetId = toId(target) || user.userid;
+		var targetId = Tools.getId(target) || user.userid;
 		var targetUser = Users.getExact(targetId);
 		var targetUsername = (targetUser ? targetUser.name : target);
 
@@ -674,7 +674,7 @@ var commands = exports.commands = {
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
 		var name = this.targetUsername;
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 
 		if (!userid || !targetUser) return this.sendReply("User '" + name + "' does not exist.");
 		if (!this.can('ban', targetUser, room)) return false;
@@ -688,7 +688,7 @@ var commands = exports.commands = {
 		if (alts.length) {
 			this.privateModCommand("(" + targetUser.name + "'s alts were also banned from room " + room.id + ": " + alts.join(", ") + ")");
 			for (var i = 0; i < alts.length; ++i) {
-				this.add('|unlink|' + toId(alts[i]));
+				this.add('|unlink|' + Tools.getId(alts[i]));
 			}
 		}
 		this.add('|unlink|' + this.getLastIdOf(targetUser));
@@ -705,7 +705,7 @@ var commands = exports.commands = {
 
 		this.splitTarget(target, true);
 		var targetUser = this.targetUser;
-		var userid = room.isRoomBanned(targetUser) || toId(target);
+		var userid = room.isRoomBanned(targetUser) || Tools.getId(target);
 
 		if (!userid) return this.sendReply("User '" + target + "' is an invalid username.");
 		if (!this.can('ban', targetUser, room)) return false;
@@ -972,7 +972,7 @@ var commands = exports.commands = {
 			});
 			this.privateModCommand("(" + targetUser.name + "'s " + (acAccount ? " ac account: " + acAccount + ", " : "") + "banned alts: " + alts.join(", ") + (guests ? " [" + guests + " guests]" : "") + ")");
 			for (var i = 0; i < alts.length; ++i) {
-				this.add('|unlink|' + toId(alts[i]));
+				this.add('|unlink|' + Tools.getId(alts[i]));
 			}
 		} else if (acAccount) {
 			this.privateModCommand("(" + targetUser.name + "'s ac account: " + acAccount + ")");
@@ -1088,7 +1088,7 @@ var commands = exports.commands = {
 
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
-		var userid = toId(this.targetUsername);
+		var userid = Tools.getId(this.targetUsername);
 		var name = targetUser ? targetUser.name : this.targetUsername;
 
 		if (!userid) return this.parse('/help promote');
@@ -1312,7 +1312,7 @@ var commands = exports.commands = {
 		if (target.includes(',')) {
 			var targets = target.split(',');
 			target = targets[1].trim();
-			roomId = toId(targets[0]) || room.id;
+			roomId = Tools.getId(targets[0]) || room.id;
 		}
 
 		// Let's check the number of lines to retrieve or if it's a word instead
@@ -1721,7 +1721,7 @@ var commands = exports.commands = {
 	'memusage': 'memoryusage',
 	memoryusage: function (target) {
 		if (!this.can('hotpatch')) return false;
-		target = toId(target) || 'all';
+		target = Tools.getId(target) || 'all';
 		if (target === 'all') {
 			this.sendReply("Loading memory usage, this might take a while.");
 		}
@@ -1843,8 +1843,8 @@ var commands = exports.commands = {
 		if (cmd.charAt(cmd.length - 1) === ',') cmd = cmd.slice(0, -1);
 		var targets = target.split(',');
 		function getPlayer(input) {
-			if (room.battle.playerids[0] === toId(input)) return 'p1';
-			if (room.battle.playerids[1] === toId(input)) return 'p2';
+			if (room.battle.playerids[0] === Tools.getId(input)) return 'p1';
+			if (room.battle.playerids[1] === Tools.getId(input)) return 'p2';
 			if (input.includes('1')) return 'p1';
 			if (input.includes('2')) return 'p2';
 			return 'p3';
@@ -1853,7 +1853,7 @@ var commands = exports.commands = {
 			if (/^[0-9]+$/.test(input)) {
 				return '.pokemon[' + (parseInt(input) - 1) + ']';
 			}
-			return ".pokemon.find(function(p){return p.speciesid==='" + toId(targets[1]) + "'})";
+			return ".pokemon.find(function(p){return p.speciesid==='" + Tools.getId(targets[1]) + "'})";
 		}
 		switch (cmd) {
 		case 'hp':
@@ -1862,34 +1862,34 @@ var commands = exports.commands = {
 			break;
 		case 'status':
 		case 's':
-			room.battle.send('eval', "var pl=" + getPlayer(targets[0]) + ";var p=pl" + getPokemon(targets[1]) + ";p.setStatus('" + toId(targets[2]) + "');if (!p.isActive){battle.add('','please ignore the above');battle.add('-status',pl.active[0],pl.active[0].status,'[silent]');}");
+			room.battle.send('eval', "var pl=" + getPlayer(targets[0]) + ";var p=pl" + getPokemon(targets[1]) + ";p.setStatus('" + Tools.getId(targets[2]) + "');if (!p.isActive){battle.add('','please ignore the above');battle.add('-status',pl.active[0],pl.active[0].status,'[silent]');}");
 			break;
 		case 'pp':
-			room.battle.send('eval', "var pl=" + getPlayer(targets[0]) + ";var p=pl" + getPokemon(targets[1]) + ";p.moveset[p.moves.indexOf('" + toId(targets[2]) + "')].pp = " + parseInt(targets[3]));
+			room.battle.send('eval', "var pl=" + getPlayer(targets[0]) + ";var p=pl" + getPokemon(targets[1]) + ";p.moveset[p.moves.indexOf('" + Tools.getId(targets[2]) + "')].pp = " + parseInt(targets[3]));
 			break;
 		case 'boost':
 		case 'b':
-			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";battle.boost({" + toId(targets[2]) + ":" + parseInt(targets[3]) + "},p)");
+			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";battle.boost({" + Tools.getId(targets[2]) + ":" + parseInt(targets[3]) + "},p)");
 			break;
 		case 'volatile':
 		case 'v':
-			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";p.addVolatile('" + toId(targets[2]) + "')");
+			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";p.addVolatile('" + Tools.getId(targets[2]) + "')");
 			break;
 		case 'sidecondition':
 		case 'sc':
-			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + ".addSideCondition('" + toId(targets[1]) + "')");
+			room.battle.send('eval', "var p=" + getPlayer(targets[0]) + ".addSideCondition('" + Tools.getId(targets[1]) + "')");
 			break;
 		case 'fieldcondition': case 'pseudoweather':
 		case 'fc':
-			room.battle.send('eval', "battle.addPseudoWeather('" + toId(targets[0]) + "')");
+			room.battle.send('eval', "battle.addPseudoWeather('" + Tools.getId(targets[0]) + "')");
 			break;
 		case 'weather':
 		case 'w':
-			room.battle.send('eval', "battle.setWeather('" + toId(targets[0]) + "')");
+			room.battle.send('eval', "battle.setWeather('" + Tools.getId(targets[0]) + "')");
 			break;
 		case 'terrain':
 		case 't':
-			room.battle.send('eval', "battle.setTerrain('" + toId(targets[0]) + "')");
+			room.battle.send('eval', "battle.setTerrain('" + Tools.getId(targets[0]) + "')");
 			break;
 		default:
 			this.errorReply("Unknown editbattle command: " + cmd);
@@ -1987,7 +1987,7 @@ var commands = exports.commands = {
 		if (!target) return this.parse('/help addplayer');
 
 		target = this.splitTarget(target, true);
-		var userid = toId(this.targetUsername);
+		var userid = Tools.getId(this.targetUsername);
 		var targetUser = this.targetUser;
 		var name = this.targetUsername;
 
@@ -2044,7 +2044,7 @@ var commands = exports.commands = {
 	},
 
 	timer: function (target, room, user) {
-		target = toId(target);
+		target = Tools.getId(target);
 		if (room.requestKickInactive) {
 			if (target === 'off' || target === 'false' || target === 'stop') {
 				var canForceTimer = user.can('timer', null, room);
@@ -2064,7 +2064,7 @@ var commands = exports.commands = {
 
 	autotimer: 'forcetimer',
 	forcetimer: function (target, room, user) {
-		target = toId(target);
+		target = Tools.getId(target);
 		if (!this.can('autotimer')) return;
 		if (target === 'off' || target === 'false' || target === 'stop') {
 			Config.forcetimer = false;
@@ -2175,7 +2175,7 @@ var commands = exports.commands = {
 	},
 
 	accept: function (target, room, user, connection) {
-		var userid = toId(target);
+		var userid = Tools.getId(target);
 		var format = '';
 		if (user.challengesFrom[userid]) format = user.challengesFrom[userid].format;
 		if (!format) {
@@ -2188,7 +2188,7 @@ var commands = exports.commands = {
 	},
 
 	reject: function (target, room, user) {
-		user.rejectChallengeFrom(toId(target));
+		user.rejectChallengeFrom(Tools.getId(target));
 	},
 
 	saveteam: 'useteam',
@@ -2218,7 +2218,7 @@ var commands = exports.commands = {
 			var targetUser = Users.get(target);
 			if (!trustable || !targetUser) {
 				connection.send('|queryresponse|userdetails|' + JSON.stringify({
-					userid: toId(target),
+					userid: Tools.getId(target),
 					rooms: false
 				}));
 				return false;

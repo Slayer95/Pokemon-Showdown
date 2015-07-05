@@ -46,7 +46,7 @@ exports.commands = {
 		}
 		scavengers.status = 'on';
 		scavengers.hints = [targets[0].trim(), targets[2].trim(), targets[4].trim()];
-		scavengers.answers = [toId(targets[1]), toId(targets[3]), toId(targets[5])];
+		scavengers.answers = [Tools.getId(targets[1]), Tools.getId(targets[3]), Tools.getId(targets[5])];
 		var result = (cmd === 'startofficialhunt' ? 'An official' : 'A new') + ' Scavenger Hunt has been started by <em> ' + Tools.escapeHTML(user.name) + '</em>! The first hint is: ' + Tools.escapeHTML(scavengers.hints[0]);
 		Rooms.rooms.scavengers.addRaw('<div class="broadcast-blue"><strong>' + result + '</strong></div>');
 	},
@@ -62,7 +62,7 @@ exports.commands = {
 		if (scavengers.status !== 'on') return this.sendReply('There is no active scavenger hunt.');
 		if (!scavengers.participants[user.userid]) return this.sendReply('You are not participating in the current scavenger hunt. Use the command /joinhunt to participate.');
 		if (scavengers.participants[user.userid].room >= 3) return this.sendReply('You have already finished!');
-		target = toId(target);
+		target = Tools.getId(target);
 		var roomnum = scavengers.participants[user.userid].room;
 		if (scavengers.answers[roomnum] === target) {
 			scavengers.participants[user.userid].room++;

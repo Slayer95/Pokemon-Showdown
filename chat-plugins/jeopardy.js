@@ -522,7 +522,7 @@ var commands = {
 			questions = jeopardy.questions;
 		}
 
-		if (toId(target) === 'final') {
+		if (Tools.getId(target) === 'final') {
 			this.sendReplyBox(
 				"<strong>Final Category:</strong> " + Tools.escapeHTML(questions.getCategory('final') || "") + '<br />' +
 				"<strong>Final Question:</strong> " + Tools.escapeHTML(questions.getQuestion('final', 0).value || "") + '<br />' +
@@ -543,7 +543,7 @@ var commands = {
 			"edit dailydouble, [category number], [question number], {true,false}\n" +
 			"(Category number can be 'final')";
 
-		var editType = toId(params[0]);
+		var editType = Tools.getId(params[0]);
 		if (!(editType in {category: 1, question: 1, answer: 1, dailydouble: 1})) return this.sendReply(usage);
 		if (editType === 'category') {
 			if (params.length < 3) return this.sendReply(usage);
@@ -562,7 +562,7 @@ var commands = {
 			questions = jeopardy.questions;
 		}
 
-		var categoryNumber = parseInt(params[1], 10) || toId(params[1]);
+		var categoryNumber = parseInt(params[1], 10) || Tools.getId(params[1]);
 		if (!(1 <= categoryNumber && categoryNumber <= questions.categoryCount || categoryNumber === 'final')) return this.sendReply("Please enter a valid category number.");
 		if (categoryNumber === 'final') {
 			categoryNumber = 'final';
@@ -595,7 +595,7 @@ var commands = {
 				break;
 
 			case 'dailydouble':
-				var isSet = toId(value) === 'true';
+				var isSet = Tools.getId(value) === 'true';
 				questions.setDailyDouble(categoryNumber, questionNumber, isSet);
 				this.sendReply("The daily double has been " + (isSet ? "set." : "unset."));
 				break;

@@ -228,7 +228,7 @@ var Context = exports.Context = (function () {
 	Context.prototype.globalModlog = function (action, user, text) {
 		var buf = "(" + this.room.id + ") " + action + ": ";
 		if (typeof user === 'string') {
-			buf += "[" + toId(user) + "]";
+			buf += "[" + Tools.getId(user) + "]";
 		} else {
 			var userid = this.getLastIdOf(user);
 			buf += "[" + userid + "]";
@@ -488,13 +488,13 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 		for (var g in Config.groups) {
 			var groupid = Config.groups[g].id;
 			if (cmd === groupid || cmd === 'global' + groupid) {
-				return parse('/promote ' + toId(target) + ', ' + g, room, user, connection, levelsDeep + 1);
+				return parse('/promote ' + Tools.getId(target) + ', ' + g, room, user, connection, levelsDeep + 1);
 			} else if (cmd === 'de' + groupid || cmd === 'un' + groupid || cmd === 'globalde' + groupid || cmd === 'deglobal' + groupid) {
-				return parse('/demote ' + toId(target), room, user, connection, levelsDeep + 1);
+				return parse('/demote ' + Tools.getId(target), room, user, connection, levelsDeep + 1);
 			} else if (cmd === 'room' + groupid) {
-				return parse('/roompromote ' + toId(target) + ', ' + g, room, user, connection, levelsDeep + 1);
+				return parse('/roompromote ' + Tools.getId(target) + ', ' + g, room, user, connection, levelsDeep + 1);
 			} else if (cmd === 'roomde' + groupid || cmd === 'deroom' + groupid || cmd === 'roomun' + groupid) {
-				return parse('/roomdemote ' + toId(target), room, user, connection, levelsDeep + 1);
+				return parse('/roomdemote ' + Tools.getId(target), room, user, connection, levelsDeep + 1);
 			}
 		}
 

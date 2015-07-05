@@ -24,7 +24,7 @@ exports.BattleScripts = {
 	// BattlePokemon scripts.
 	pokemon: {
 		getStat: function (statName, unmodified) {
-			statName = toId(statName);
+			statName = this.battle.getId(statName);
 			if (statName === 'hp') return this.maxhp;
 			if (unmodified) return this.stats[statName];
 			return this.modifiedStats[statName];
@@ -1150,7 +1150,7 @@ exports.BattleScripts = {
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
 			var howMany = (template.essentialMove) ? 3 : 4;
 			while (moves.length < howMany && j < moveKeys.length) {
-				var moveid = toId(moveKeys[j]);
+				var moveid = this.getId(moveKeys[j]);
 				j++;
 				moves.push(moveid);
 			}

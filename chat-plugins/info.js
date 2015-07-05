@@ -181,7 +181,7 @@ var commands = {
 		if (!this.canBroadcast()) return;
 
 		var buffer = '';
-		var targetId = toId(target);
+		var targetId = Tools.getId(target);
 		if (!targetId) return this.parse('/help data');
 		if (targetId === '' + parseInt(targetId)) {
 			for (var p in Tools.data.Pokedex) {
@@ -466,7 +466,7 @@ var commands = {
 					return this.sendReplyBox("No value given to compare with '" + Tools.escapeHTML(target) + "'.");
 				}
 				var stat = targetParts[statSide];
-				switch (toId(targetParts[statSide])) {
+				switch (Tools.getId(targetParts[statSide])) {
 				case 'attack': stat = 'atk'; break;
 				case 'defense': stat = 'def'; break;
 				case 'specialattack': stat = 'spa'; break;
@@ -662,7 +662,7 @@ var commands = {
 				results.sort();
 				resultsStr = results.join(", ");
 			} else {
-				resultsStr = results.slice(0, output).join(", ") + ", and " + string(results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
+				resultsStr = results.slice(0, output).join(", ") + ", and " + (results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
 			}
 		} else {
 			resultsStr = "No Pok&eacute;mon found.";
@@ -813,7 +813,7 @@ var commands = {
 					return this.sendReplyBox("No value given to compare with '" + Tools.escapeHTML(target) + "'.");
 				}
 				var prop = targetParts[propSide];
-				switch (toId(targetParts[propSide])) {
+				switch (Tools.getId(targetParts[propSide])) {
 				case 'basepower': prop = 'basePower'; break;
 				case 'bp': prop = 'basePower'; break;
 				case 'acc': prop = 'accuracy'; break;
@@ -1040,7 +1040,7 @@ var commands = {
 				results.sort();
 				resultsStr += results.join(", ");
 			} else {
-				resultsStr += results.slice(0, output).join(", ") + ", and " + string(results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
+				resultsStr += results.slice(0, output).join(", ") + ", and " + (results.length - output) + " more. <font color=#999999>Redo the search with 'all' as a search parameter to show all results.</font>";
 			}
 		} else {
 			resultsStr = "No moves found.";
@@ -1589,7 +1589,7 @@ var commands = {
 	om: 'othermetas',
 	othermetas: function (target, room, user) {
 		if (!this.canBroadcast()) return;
-		target = toId(target);
+		target = Tools.getId(target);
 		var buffer = "";
 		var matched = false;
 
@@ -1877,7 +1877,7 @@ var commands = {
 	tier: 'tiers',
 	tiers: function (target, room, user) {
 		if (!this.canBroadcast()) return;
-		target = toId(target);
+		target = Tools.getId(target);
 		var buffer = "";
 		var matched = false;
 
@@ -1971,7 +1971,7 @@ var commands = {
 		if (!this.canBroadcast()) return;
 
 		var targets = target.split(',');
-		if (toId(targets[0]) === 'previews') return this.sendReplyBox("<a href=\"https://www.smogon.com/forums/threads/sixth-generation-pokemon-analyses-index.3494918/\">Generation 6 Analyses Index</a>, brought to you by <a href=\"https://www.smogon.com\">Smogon University</a>");
+		if (Tools.getId(targets[0]) === 'previews') return this.sendReplyBox("<a href=\"https://www.smogon.com/forums/threads/sixth-generation-pokemon-analyses-index.3494918/\">Generation 6 Analyses Index</a>, brought to you by <a href=\"https://www.smogon.com\">Smogon University</a>");
 		var pokemon = Tools.getTemplate(targets[0]);
 		var item = Tools.getItem(targets[0]);
 		var move = Tools.getMove(targets[0]);
@@ -2070,7 +2070,7 @@ var commands = {
 		if (!this.can('potd')) return false;
 
 		Config.potd = target;
-		Simulator.SimulatorProcess.eval('Config.potd = \'' + toId(target) + '\'');
+		Simulator.SimulatorProcess.eval('Config.potd = \'' + Tools.getId(target) + '\'');
 		if (target) {
 			if (Rooms.lobby) Rooms.lobby.addRaw("<div class=\"broadcast-blue\"><b>The Pokemon of the Day is now " + target + "!</b><br />This Pokemon will be guaranteed to show up in random battles.</div>");
 			this.logModCommand("The Pokemon of the Day was changed to " + target + " by " + user.name + ".");
@@ -2191,7 +2191,7 @@ var commands = {
 			return this.parse('/help showimage');
 		}
 
-		this.sendReply('|raw|<img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '" height="' + toId(targets[2]) + '" />');
+		this.sendReply('|raw|<img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + Tools.getId(targets[1]) + '" height="' + Tools.getId(targets[2]) + '" />');
 	},
 	showimagehelp: ["/showimage [url], [width], [height] - Show an image. Requires: # & ~"],
 
@@ -2217,7 +2217,7 @@ var commands = {
 		if (!this.canBroadcast()) return;
 
 		var buffer = '|raw|';
-		var targetId = toId(target);
+		var targetId = Tools.getId(target);
 		switch (targetId) {
 		case 'cura':
 		case 'recover':

@@ -16,7 +16,7 @@ function usersToNames(users) {
 }
 
 function createTournamentGenerator(generator, args, output) {
-	var Generator = TournamentGenerators[toId(generator)];
+	var Generator = TournamentGenerators[Tools.getId(generator)];
 	if (!Generator) {
 		output.sendReply(generator + " is not a valid type.");
 		output.sendReply("Valid types: " + Object.keys(TournamentGenerators).join(", "));
@@ -44,7 +44,7 @@ function createTournament(room, format, generator, playerCap, isRated, args, out
 		output.sendReply("Valid formats: " + Object.keys(Tools.data.Formats).filter(function (f) { return Tools.data.Formats[f].effectType === 'Format'; }).join(", "));
 		return;
 	}
-	if (!TournamentGenerators[toId(generator)]) {
+	if (!TournamentGenerators[Tools.getId(generator)]) {
 		output.sendReply(generator + " is not a valid type.");
 		output.sendReply("Valid types: " + Object.keys(TournamentGenerators).join(", "));
 		return;
@@ -56,7 +56,7 @@ function createTournament(room, format, generator, playerCap, isRated, args, out
 	return (exports.tournaments[room.id] = new Tournament(room, format, createTournamentGenerator(generator, args, output), playerCap, isRated));
 }
 function deleteTournament(name, output) {
-	var id = toId(name);
+	var id = Tools.getId(name);
 	var tournament = exports.tournaments[id];
 	if (!tournament) {
 		output.sendReply(name + " doesn't exist.");
@@ -67,7 +67,7 @@ function deleteTournament(name, output) {
 	return true;
 }
 function getTournament(name, output) {
-	var id = toId(name);
+	var id = Tools.getId(name);
 	if (exports.tournaments[id]) {
 		return exports.tournaments[id];
 	}
@@ -76,7 +76,7 @@ function getTournament(name, output) {
 Tournament = (function () {
 	function Tournament(room, format, generator, playerCap, isRated) {
 		this.room = room;
-		this.format = toId(format);
+		this.format = Tools.getId(format);
 		this.generator = generator;
 		this.isRated = isRated;
 		this.playerCap = parseInt(playerCap) || Config.tournamentDefaultPlayerCap || 0;
@@ -728,7 +728,7 @@ Tournament = (function () {
 			bracketData: this.getBracketData()
 		}));
 		this.isEnded = true;
-		delete exports.tournaments[toId(this.room.id)];
+		delete exports.tournaments[Tools.getId(this.room.id)];
 	};
 
 	return Tournament;

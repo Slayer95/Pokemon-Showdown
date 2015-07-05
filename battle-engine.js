@@ -29,45 +29,6 @@ if (Config.crashguard) {
 	});
 }
 
-/**
- * Converts anything to an ID. An ID must have only lowercase alphanumeric
- * characters.
- * If a string is passed, it will be converted to lowercase and
- * non-alphanumeric characters will be stripped.
- * If an object with an ID is passed, its ID will be returned.
- * Otherwise, an empty string will be returned.
- */
-global.toId = function (text) {
-	if (text && text.id) {
-		text = text.id;
-	} else if (text && text.userid) {
-		text = text.userid;
-	}
-
-	return string(text).toLowerCase().replace(/[^a-z0-9]+/g, '');
-};
-
-/**
- * Validates a username or Pokemon nickname
- */
-global.toName = function (name) {
-	name = string(name);
-	name = name.replace(/[\|\s\[\]\,]+/g, ' ').trim();
-	if (name.length > 18) name = name.substr(0, 18).trim();
-	return name;
-};
-
-/**
- * Safely ensures the passed variable is a string
- * Simply doing '' + str can crash if str.toString crashes or isn't a function
- * If we're expecting a string and being given anything that isn't a string
- * or a number, it's safe to assume it's an error, and return ''
- */
-global.string = function (str) {
-	if (typeof str === 'string' || typeof str === 'number') return '' + str;
-	return '';
-};
-
 global.Tools = require('./tools.js').includeData();
 
 var Battle, BattleSide, BattlePokemon;
@@ -184,7 +145,7 @@ BattlePokemon = (function () {
 			set.name = this.species;
 		}
 		this.name = (set.name || set.species || 'Bulbasaur').substr(0, 20);
-		this.speciesid = toId(this.species);
+		this.speciesid = Tools.getId(this.species);
 		this.template = this.baseTemplate;
 		this.moves = [];
 		this.baseMoves = this.moves;
@@ -213,9 +174,9 @@ BattlePokemon = (function () {
 		this.weight = this.template.weight;
 		this.weightkg = this.template.weightkg;
 
-		this.baseAbility = toId(set.ability);
+		this.baseAbility = Tools.getId(set.ability);
 		this.ability = this.baseAbility;
-		this.item = toId(set.item);
+		this.item = Tools.getId(set.item);
 		this.abilityData = {id: this.ability};
 		this.itemData = {id: this.item};
 		this.speciesData = {id: this.speciesid};
@@ -431,7 +392,7 @@ BattlePokemon = (function () {
 		this.speed = this.getStat('spe');
 	};
 	BattlePokemon.prototype.calculateStat = function (statName, boost, modifier) {
-		statName = toId(statName);
+		statName = Tools.getId(statName);
 
 		if (statName === 'hp') return this.maxhp; // please just read .maxhp directly
 
@@ -463,7 +424,7 @@ BattlePokemon = (function () {
 		return stat;
 	};
 	BattlePokemon.prototype.getStat = function (statName, unboosted, unmodified) {
-		statName = toId(statName);
+		statName = Tools.getId(statName);
 
 		if (statName === 'hp') return this.maxhp; // please just read .maxhp directly
 
@@ -555,7 +516,7 @@ BattlePokemon = (function () {
 	};
 	BattlePokemon.prototype.getMoves = function (lockedMove, restrictData) {
 		if (lockedMove) {
-			lockedMove = toId(lockedMove);
+			lockedMove = Tools.getId(lockedMove);
 			this.trapped = true;
 		}
 		if (lockedMove === 'recharge') {
@@ -736,7 +697,7 @@ BattlePokemon = (function () {
 				target: moveData.target,
 				disabled: false
 			});
-			this.moves.push(toId(moveName));
+			this.moves.push(Tools.getId(moveName));
 		}
 		for (var j in pokemon.boosts) {
 			this.boosts[j] = pokemon.boosts[j];
@@ -797,7 +758,7 @@ BattlePokemon = (function () {
 
 		this.moveset = this.baseMoveset.slice();
 		this.moves = this.moveset.map(function (move) {
-			return toId(move.move);
+			return Tools.getId(move.move);
 		});
 
 		this.transformed = false;
@@ -875,7 +836,7 @@ BattlePokemon = (function () {
 		return false;
 	};
 	BattlePokemon.prototype.hasMove = function (moveid) {
-		moveid = toId(moveid);
+		moveid = Tools.getId(moveid);
 		if (moveid.substr(0, 11) === 'hiddenpower') moveid = 'hiddenpower';
 		for (var i = 0; i < this.moveset.length; i++) {
 			if (moveid === this.battle.getMove(this.moveset[i].move).id) {
@@ -888,7 +849,7 @@ BattlePokemon = (function () {
 		if (!sourceEffect && this.battle.event) {
 			sourceEffect = this.battle.effect;
 		}
-		moveid = toId(moveid);
+		moveid = Tools.getId(moveid);
 		if (moveid.substr(0, 11) === 'hiddenpower') moveid = 'hiddenpower';
 
 		if (this.disabledMoves[moveid] && !this.disabledMoves[moveid].isHidden) return;
@@ -996,7 +957,7 @@ BattlePokemon = (function () {
 		if (!this.hp || !this.isActive) return false;
 		if (!this.item) return false;
 
-		var id = toId(item);
+		var id = Tools.getId(item);
 		if (id && this.item !== id) return false;
 
 		if (!sourceEffect && this.battle.effect) sourceEffect = this.battle.effect;
@@ -1021,7 +982,7 @@ BattlePokemon = (function () {
 		if (!this.isActive) return false;
 		if (!this.item) return false;
 
-		var id = toId(item);
+		var id = Tools.getId(item);
 		if (id && this.item !== id) return false;
 
 		if (!sourceEffect && this.battle.effect) sourceEffect = this.battle.effect;
@@ -1055,8 +1016,8 @@ BattlePokemon = (function () {
 		if (!this.item) return false;
 		if (!source) source = this;
 		if (this.battle.gen === 4) {
-			if (toId(this.ability) === 'multitype') return false;
-			if (source && toId(source.ability) === 'multitype') return false;
+			if (Tools.getId(this.ability) === 'multitype') return false;
+			if (source && Tools.getId(source.ability) === 'multitype') return false;
 		}
 		var item = this.getItem();
 		if (this.battle.runEvent('TakeItem', this, source, null, item)) {
@@ -1085,9 +1046,9 @@ BattlePokemon = (function () {
 		if (this.ignoringItem()) return false;
 		var ownItem = this.item;
 		if (!Array.isArray(item)) {
-			return ownItem === toId(item);
+			return ownItem === Tools.getId(item);
 		}
-		return (item.map(toId).indexOf(ownItem) >= 0);
+		return (item.map(Tools.getId).indexOf(ownItem) >= 0);
 	};
 	BattlePokemon.prototype.clearItem = function () {
 		return this.setItem('');
@@ -1116,9 +1077,9 @@ BattlePokemon = (function () {
 		if (this.ignoringAbility()) return false;
 		var ownAbility = this.ability;
 		if (!Array.isArray(ability)) {
-			return ownAbility === toId(ability);
+			return ownAbility === Tools.getId(ability);
 		}
-		return (ability.map(toId).indexOf(ownAbility) >= 0);
+		return (ability.map(Tools.getId).indexOf(ownAbility) >= 0);
 	};
 	BattlePokemon.prototype.clearAbility = function () {
 		return this.setAbility('');
@@ -1385,7 +1346,7 @@ BattleSide = (function () {
 				},
 				moves: pokemon.moves.map(function (move) {
 					if (move === 'hiddenpower') {
-						return move + toId(pokemon.hpType) + (pokemon.hpPower === 70 ? '' : pokemon.hpPower);
+						return move + Tools.getId(pokemon.hpType) + (pokemon.hpPower === 70 ? '' : pokemon.hpPower);
 					}
 					return move;
 				}),
@@ -1616,7 +1577,7 @@ Battle = (function () {
 		this.terrainData = {id:''};
 		this.pseudoWeather = {};
 
-		this.format = toId(format);
+		this.format = Tools.getId(format);
 		this.formatData = {id:this.format};
 
 		this.effect = {id:''};
@@ -1820,9 +1781,9 @@ Battle = (function () {
 	Battle.prototype.isWeather = function (weather, target) {
 		var ourWeather = this.effectiveWeather(target);
 		if (!Array.isArray(weather)) {
-			return ourWeather === toId(weather);
+			return ourWeather === Tools.getId(weather);
 		}
-		return (weather.map(toId).indexOf(ourWeather) >= 0);
+		return (weather.map(Tools.getId).indexOf(ourWeather) >= 0);
 	};
 	Battle.prototype.getWeather = function () {
 		return this.getEffect(this.weather);
@@ -1873,9 +1834,9 @@ Battle = (function () {
 	Battle.prototype.isTerrain = function (terrain, target) {
 		var ourTerrain = this.effectiveTerrain(target);
 		if (!Array.isArray(terrain)) {
-			return ourTerrain === toId(terrain);
+			return ourTerrain === Tools.getId(terrain);
 		}
-		return (terrain.map(toId).indexOf(ourTerrain) >= 0);
+		return (terrain.map(Tools.getId).indexOf(ourTerrain) >= 0);
 	};
 	Battle.prototype.getTerrain = function () {
 		return this.getEffect(this.terrain);
@@ -4152,7 +4113,7 @@ Battle = (function () {
 					}
 				} else {
 					// parse a move name
-					moveid = toId(data);
+					moveid = Tools.getId(data);
 					if (moveid.substr(0, 11) === 'hiddenpower') {
 						moveid = 'hiddenpower';
 					}

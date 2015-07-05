@@ -65,7 +65,8 @@ describe('Misty Terrain', function () {
 		assert.strictEqual(battle.p1.active[0].status, '');
 		var dataLine = battle.log[battle.lastMoveLine + 1].split('|');
 		assert.strictEqual(dataLine[1], '-start');
-		assert.ok(toId(dataLine[3]).endsWith('yawn'));
+		var resultMove = dataLine[3].indexOf(':') >= 0 ? dataLine[3].slice(dataLine[3].indexOf(':') + 1) : dataLine[3];
+		assert.strictEqual(battle.getMove(resultMove).id, 'yawn');
 	});
 
 	it('should cause Rest to fail on grounded Pokemon', function () {
@@ -95,7 +96,7 @@ describe('Misty Terrain', function () {
 		battle.join('p1', 'Guest 1', 1, [{species: "Whimsicott", ability: 'prankster', moves: ['mistyterrain']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Shuckle", ability: 'sturdy', moves: ['naturepower']}]);
 		battle.commitDecisions();
-		var resultMove = toId(battle.log[battle.lastMoveLine].split('|')[3]);
-		assert.strictEqual(resultMove, 'moonblast');
+		var resultMove = battle.log[battle.lastMoveLine].split('|')[3];
+		assert.strictEqual(battle.getMove(resultMove).id, 'moonblast');
 	});
 });

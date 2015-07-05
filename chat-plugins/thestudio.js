@@ -12,7 +12,7 @@ function toArrayOfArrays(map) {
 	return ret;
 }
 
-function toArtistId(artist) { // toId would return '' for foreign/sadistic artists
+function toArtistId(artist) { // Tools.getId would return '' for foreign/sadistic artists
 	return artist.toLowerCase().replace(/\s/g, '').replace(/\b&\b/g, '');
 }
 
@@ -203,7 +203,7 @@ var commands = {
 
 		target = this.splitTarget(target);
 		var name = this.targetUsername;
-		var userid = toId(name);
+		var userid = Tools.getId(name);
 		if (!userid) return this.sendReply("'" + name + "' is not a valid username.");
 
 		for (var nominator, nominatorsIterator = artistOfTheDay.nominations.keys(); !!(nominator = nominatorsIterator.next().value);) { // replace with for-of loop once available
@@ -223,7 +223,7 @@ var commands = {
 		if (!target) this.parse('/help aotd set');
 		if (!room.chatRoomData || !this.can('mute', null, room)) return false;
 		if ((user.locked || room.isMuted(user)) && !user.can('bypassall')) return this.sendReply("You cannot do this while unable to talk.");
-		if (!toId(target)) return this.sendReply("No valid artist was specified.");
+		if (!Tools.getId(target)) return this.sendReply("No valid artist was specified.");
 		if (artistOfTheDay.pendingNominations) return this.sendReply("The Artist of the Day cannot be set while nominations are in progress.");
 
 		room.chatRoomData.artistOfTheDay = target;

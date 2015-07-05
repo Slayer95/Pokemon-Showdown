@@ -776,7 +776,7 @@ exports.BattleMovedex = {
 				disabled: false,
 				used: false
 			};
-			source.moves[moveslot] = toId(move.name);
+			source.moves[moveslot] = this.getId(move.name);
 			this.add('-activate', source, 'move: Mimic', move.name);
 		}
 	},
@@ -957,7 +957,7 @@ exports.BattleMovedex = {
 			};
 			source.moveset[moveslot] = sketchedMove;
 			source.baseMoveset[moveslot] = sketchedMove;
-			source.moves[moveslot] = toId(move.name);
+			source.moves[moveslot] = this.getId(move.name);
 			this.add('-activate', source, 'move: Mimic', move.name);
 		}
 	},

@@ -1,7 +1,7 @@
 exports.BattleScripts = {
 	gen: 6,
 	runMove: function (move, pokemon, target, sourceEffect) {
-		if (!sourceEffect && toId(move) !== 'struggle') {
+		if (!sourceEffect && this.getId(move) !== 'struggle') {
 			var changedMove = this.runEvent('OverrideDecision', pokemon, target, move);
 			if (changedMove && changedMove !== true) {
 				move = changedMove;
@@ -563,7 +563,7 @@ exports.BattleScripts = {
 
 	canMegaEvo: function (pokemon) {
 		var altForme = pokemon.baseTemplate.otherFormes && this.getTemplate(pokemon.baseTemplate.otherFormes[0]);
-		if (altForme && altForme.isMega && altForme.requiredMove && pokemon.moves.indexOf(toId(altForme.requiredMove)) >= 0) return altForme.species;
+		if (altForme && altForme.isMega && altForme.requiredMove && pokemon.moves.indexOf(this.getId(altForme.requiredMove)) >= 0) return altForme.species;
 		var item = pokemon.getItem();
 		if (item.megaEvolves !== pokemon.baseTemplate.baseSpecies || item.megaStone === pokemon.species) return false;
 		return item.megaStone;
@@ -830,7 +830,7 @@ exports.BattleScripts = {
 			} while (this.data.Items[item].isNonstandard);
 
 			// Genesect forms are a sprite difference based on its Drives
-			if (template.species.substr(0, 9) === 'Genesect-' && item !== toId(template.requiredItem)) pokemon = 'Genesect';
+			if (template.species.substr(0, 9) === 'Genesect-' && item !== this.getId(template.requiredItem)) pokemon = 'Genesect';
 
 			// Random unique ability
 			var ability = '';
@@ -1511,10 +1511,10 @@ exports.BattleScripts = {
 			hasMove['technoblast'] = true;
 			changedMove = true;
 		}
-		if (template.requiredMove && !hasMove[toId(template.requiredMove)]) {
+		if (template.requiredMove && !hasMove[this.getId(template.requiredMove)]) {
 			delete hasMove[this.getMove(moves[3]).id];
-			moves[3] = toId(template.requiredMove);
-			hasMove[toId(template.requiredMove)] = true;
+			moves[3] = this.getId(template.requiredMove);
+			hasMove[this.getId(template.requiredMove)] = true;
 			changedMove = true;
 		}
 
@@ -1553,7 +1553,7 @@ exports.BattleScripts = {
 			var rejectAbility = false;
 			if (ability in counterAbilities) {
 				// Adaptability, Blaze, Contrary, Hustle, Iron Fist, Overgrow, Skill Link, Swarm, Technician, Torrent
-				rejectAbility = !counter[toId(ability)];
+				rejectAbility = !counter[this.getId(ability)];
 			} else if (ability in ateAbilities) {
 				rejectAbility = !counter['ate'];
 			} else if (ability === 'Chlorophyll') {
@@ -2021,7 +2021,7 @@ exports.BattleScripts = {
 
 			// Limit the number of Megas to one
 			var forme = template.otherFormes && this.getTemplate(template.otherFormes[0]);
-			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(toId(forme.requiredMove)) >= 0);
+			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(this.getId(forme.requiredMove)) >= 0);
 			if (isMegaSet && teamDetails.megaCount > 0) continue;
 
 			// Okay, the set passes, add it to our team
@@ -2166,7 +2166,7 @@ exports.BattleScripts = {
 
 			// Limit the number of Megas to one
 			var forme = template.otherFormes && this.getTemplate(template.otherFormes[0]);
-			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(toId(forme.requiredMove)) >= 0);
+			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(this.getId(forme.requiredMove)) >= 0);
 			if (isMegaSet && megaCount > 0) continue;
 
 			// Okay, the set passes, add it to our team
@@ -2297,7 +2297,7 @@ exports.BattleScripts = {
 
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
 			while (moves.length < 4 && movePool.length) {
-				var moveid = toId(this.sampleNoReplace(movePool));
+				var moveid = this.getId(this.sampleNoReplace(movePool));
 				if (moveid.substr(0, 11) === 'hiddenpower') {
 					availableHP--;
 					if (hasMove['hiddenpower']) continue;
@@ -2666,10 +2666,10 @@ exports.BattleScripts = {
 			hasMove['relicsong'] = true;
 			changedMove = true;
 		}
-		if (template.requiredMove && !hasMove[toId(template.requiredMove)]) {
+		if (template.requiredMove && !hasMove[this.getId(template.requiredMove)]) {
 			delete hasMove[this.getMove(moves[3]).id];
-			moves[3] = toId(template.requiredMove);
-			hasMove[toId(template.requiredMove)] = true;
+			moves[3] = this.getId(template.requiredMove);
+			hasMove[this.getId(template.requiredMove)] = true;
 			changedMove = true;
 		}
 
@@ -2703,7 +2703,7 @@ exports.BattleScripts = {
 
 			var rejectAbility = false;
 			if (ability in counterAbilities) {
-				rejectAbility = !counter[toId(ability)];
+				rejectAbility = !counter[this.getId(ability)];
 			} else if (ability === 'Rock Head' || ability === 'Reckless') {
 				rejectAbility = !counter['recoil'];
 			} else if (ability === 'No Guard' || ability === 'Compound Eyes') {
@@ -2993,7 +2993,7 @@ exports.BattleScripts = {
 	},
 	randomFactorySets: require('./factory-sets.json'),
 	randomFactorySet: function (template, slot, teamData, tier) {
-		var speciesId = toId(template.species);
+		var speciesId = this.getId(template.species);
 		var flags = this.randomFactorySets[tier][speciesId].flags;
 		var setList = this.randomFactorySets[tier][speciesId].sets;
 		var effectivePool, priorityPool;
@@ -3028,7 +3028,7 @@ exports.BattleScripts = {
 			var curSetVariants = [];
 			for (var j = 0, m = curSet.moves.length; j < m; j++) {
 				var variantIndex = this.random(curSet.moves[j].length);
-				var moveId = toId(curSet.moves[j][variantIndex]);
+				var moveId = this.getId(curSet.moves[j][variantIndex]);
 				if (movesMax[moveId] && teamData.has[moveId] >= movesMax[moveId]) {
 					reject = true;
 					break;
@@ -3167,7 +3167,7 @@ exports.BattleScripts = {
 			}
 
 			for (var m = 0; m < set.moves.length; m++) {
-				var moveId = toId(set.moves[m]);
+				var moveId = this.getId(set.moves[m]);
 				if (moveId in teamData.has) {
 					teamData.has[moveId]++;
 				} else {
@@ -3295,7 +3295,7 @@ exports.BattleScripts = {
 
 			// Limit the number of Megas to one
 			var forme = template.otherFormes && this.getTemplate(template.otherFormes[0]);
-			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(toId(forme.requiredMove)) >= 0);
+			var isMegaSet = this.getItem(set.item).megaStone || (forme && forme.isMega && forme.requiredMove && set.moves.indexOf(this.getId(forme.requiredMove)) >= 0);
 			if (isMegaSet && megaCount > 0) continue;
 
 			// Okay, the set passes, add it to our team

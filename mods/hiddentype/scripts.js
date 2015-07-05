@@ -96,7 +96,7 @@ exports.BattleScripts = {
 					target: moveData.target,
 					disabled: false
 				});
-				this.moves.push(toId(moveName));
+				this.moves.push(this.battle.getId(moveName));
 			}
 			for (var j in pokemon.boosts) {
 				this.boosts[j] = pokemon.boosts[j];
