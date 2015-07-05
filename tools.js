@@ -117,8 +117,8 @@ module.exports = (function () {
 		timid: {name:"Timid", plus:'spe', minus:'atk'}
 	};
 
-	var init = Symbol('init');
-	var inherit = Symbol('inherit');
+	var init = typeof global.Symbol === 'function' ? Symbol('init') : '_init';
+	var inherit = typeof global.Symbol === 'function' ? Symbol('inherit') : '_inherit';
 
 	function Tools(mod) {
 		if (!mod) mod = 'base';
