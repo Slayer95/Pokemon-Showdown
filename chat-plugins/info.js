@@ -10,7 +10,7 @@
  * @license MIT license
  */
 
-var commands = exports.commands = {
+var commands = {
 
 	ip: 'whois',
 	rooms: 'whois',
@@ -2357,3 +2357,14 @@ var commands = exports.commands = {
 	seasonaldatahelp: ["/seasonaldata [pokemon/item/move/ability] - Get details on this pokemon/item/move/ability/nature for the current seasonal.",
 		"!seasonaldata [pokemon/item/move/ability] - Show everyone these details. Requires: + % @ # & ~"]
 };
+
+process.nextTick(function () {
+	// This slow operation is done *after* we start listening for connections
+	// to the server. Anybody who connects while data is loading will
+	// have to wait a couple seconds before they are able to join the server, but
+	// at least they probably won't receive a connection error message.
+
+	Tools.includeData();
+	exports.commands = commands;
+	Object.merge(CommandParser.commands, commands);
+});
