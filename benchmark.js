@@ -50,13 +50,17 @@ function logStats (list) {
 	);
 }
 
+var childProcess;
 var execNext = function () {
 	if (currentExecutions >= maxExecutions) return logStats(times);
 	currentExecutions++;
-	exec('node benchmark-child.js', {env: env}, callback);
+	childProcess = exec('node benchmark-child.js', {env: env}, callback);
 }
 
 function callback (err, stdout, stderr) {
+	childProcess.kill('SIGTERM');
+	childProcess.kill('SIGINT');
+	childProcess.kill('SIGKILL');
 	if (err) throw err;
 	if (stderr) throw new Error(stderr);
 	times.push(Math.round(Number(stdout) / 1e6));
