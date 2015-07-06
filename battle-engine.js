@@ -1573,9 +1573,8 @@ Battle = (function () {
 					proto[i] = Battle.prototype[i];
 				}
 				var battle = Object.create(proto);
-				var ret = Object.create(battle);
-				tools.install(ret);
-				return (battleProtoCache[formatarg] = ret);
+				tools.install(battle);
+				return (battleProtoCache[formatarg] = battle);
 			})());
 			Battle.prototype.init.call(battle, roomid, formatarg, rated);
 			return battle;
