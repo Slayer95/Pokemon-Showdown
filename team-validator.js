@@ -152,7 +152,7 @@ if (!process.send) {
 		return '';
 	};
 
-	global.Tools = require('./tools.js');
+	global.Tools = require('./tools.js').includeData();
 
 	require('./repl.js').start('team-validator-', process.pid, function (cmd) { return eval(cmd); });
 
