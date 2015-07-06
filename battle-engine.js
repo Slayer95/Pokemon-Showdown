@@ -48,7 +48,7 @@ global.toId = function (text) {
 	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
 };
 
-global.Tools = require('./tools.js');
+global.Tools = require('./tools.js').includeData();
 
 var Battle, BattleSide, BattlePokemon;
 
@@ -1573,7 +1573,7 @@ Battle = (function () {
 					proto[i] = Battle.prototype[i];
 				}
 				var battle = Object.create(proto);
-				tools.install(battle);
+				tools.includeScripts(battle);
 				return (battleProtoCache[formatarg] = battle);
 			})());
 			Battle.prototype.init.call(battle, roomid, formatarg, rated);
