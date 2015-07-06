@@ -13,7 +13,7 @@ case '--average-new': case 'average-new':
 	list.pop();
 	console.log(list.sum() / list.length);
 	process.exit();
-	break,
+	break;
 }
 
 var maxExecutions = 3;
@@ -63,7 +63,10 @@ var branches = [['old', 'master-extra'], ['new', 'tools-split-extra']];
 function switchBranch () {
 	var nextBranch = branches.shift();
 	if (!nextBranch) return logStats();
-	exec('git checkout ' + nextBranch[1], function () {
+	exec('git checkout ' + nextBranch[1], function (err, stdout, stderr) {
+		if (err) throw err;
+		if (stderr && !stderr.includes("Already on ") && !stderr.includes("Switched to branch")) throw new Error(stderr);
+		console.log("Branch `" + nextBranch[1] + "`");
 		env.type = nextBranch[0];
 		times[env.type] = [];
 		currentExecutions = 0;
