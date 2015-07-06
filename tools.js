@@ -924,11 +924,15 @@ module.exports = (function () {
 			basePath = './mods/' + this.currentMod + '/';
 		}
 
-		dataTypes.forEach(function (dataType) {
-			if (typeof dataFiles[dataType] !== 'string') return (data[dataType] = dataFiles[dataType]);
+		for (var i = 0; i < dataTypes.length; i++) {
+			var dataType = dataTypes[i];
+			if (typeof dataFiles[dataType] !== 'string') {
+				data[dataType] = dataFiles[dataType];
+				continue;
+			}
 			if (dataType === 'Natures') {
-				if (data.mod === 'base') return (data[dataType] = BattleNatures);
-				return;
+				if (data.mod === 'base') data[dataType] = BattleNatures;
+				continue;
 			}
 			var maybeData = tryRequire(basePath + dataFiles[dataType]);
 			if (maybeData.error) {
@@ -938,12 +942,14 @@ module.exports = (function () {
 			var BattleData = maybeData.result['Battle' + dataType];
 			if (!BattleData || typeof BattleData !== 'object') throw new Error("Corrupted data file: `" + basePath + dataFiles[dataType] + "`");
 			if (BattleData !== data[dataType]) data[dataType] = Object.merge(BattleData, data[dataType]);
-		});
+		}
+
 		if (this.isBase) {
 			// Formats are inherited by mods
 			this.includeFormats();
 		} else {
-			dataTypes.forEach(function (dataType) {
+			for (var i = 0; i < dataTypes.length; i++) {
+				var dataType = dataTypes[i];
 				var parentTypedData = parentTools.data[dataType];
 				if (!data[dataType]) data[dataType] = {};
 				for (var key in parentTypedData) {
@@ -965,7 +971,7 @@ module.exports = (function () {
 						Object.merge(data[dataType][key], parentTypedData[key], false, false);
 					}
 				}
-			});
+			}
 		}
 
 		// Scripts override Tools.
