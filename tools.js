@@ -62,17 +62,29 @@ module.exports = (function () {
 	var init = typeof global.Symbol === 'function' ? Symbol('init') : '_init';
 	var inherit = typeof global.Symbol === 'function' ? Symbol('inherit') : '_inherit';
 
+	function tryRequire (path) {
+		var ret = {error: null, result: {}};
+		try {
+			ret.result = require(path);
+		} catch (e) {
+			ret.error = e;
+		}
+		return ret;
+	}
+
 	function Tools (mod) {
 		if (!mod) mod = 'base';
 		this.isBase = (mod === 'base');
 
-		try {
-			var path = (this.isBase ? './data/' : './mods/' + mod + '/') + dataFiles.Scripts;
-			var scripts = require(path).BattleScripts;
-			Object.defineProperty(this, init, {value: scripts.init, enumerable: false, writable: false, configurable: false});
-			Object.defineProperty(this, inherit, {value: scripts.inherit, enumerable: false, writable: false, configurable: false});
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING DATA: " + e.stack);
+		var path = (this.isBase ? './data/' : './mods/' + mod + '/') + dataFiles.Scripts;
+		var maybeScripts = tryRequire(path);
+		if (maybeScripts.error) {
+			if (maybeScripts.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING DATA: " + maybeScripts.error.stack);
+		} else {
+			var BattleScripts = maybeScripts.result.BattleScripts;
+			if (!BattleScripts || typeof BattleScripts !== 'object') throw new Error("Corrupted data file: `" + path + "`");
+			Object.defineProperty(this, init, {value: BattleScripts.init, enumerable: false, writable: false, configurable: false});
+			Object.defineProperty(this, inherit, {value: BattleScripts.inherit, enumerable: false, writable: false, configurable: false});
 		}
 
 		this.currentMod = mod;
@@ -873,12 +885,14 @@ module.exports = (function () {
 				if (data.mod === 'base') return (data[dataType] = BattleNatures);
 				return;
 			}
-			try {
-				var path = basePath + dataFiles[dataType];
-				data[dataType] = Object.merge(require(path)['Battle' + dataType], data[dataType]);
-			} catch (e) {
-				if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING " + data.mod.toUpperCase() + " DATA: " + e.stack);
+			var maybeData = tryRequire(basePath + dataFiles[dataType]);
+			if (maybeData.error) {
+				maybeData.result['Battle' + dataType] = {};
+				if (maybeData.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING " + data.mod.toUpperCase() + " DATA:\n" + maybeData.error.stack);
 			}
+			var BattleData = maybeData.result['Battle' + dataType];
+			if (!BattleData || typeof BattleData !== 'object') throw new Error("Corrupted data file: `" + basePath + dataFiles[dataType] + "`");
+			if (BattleData !== data[dataType]) data[dataType] = Object.merge(BattleData, data[dataType]);
 		});
 		if (this.isBase) {
 			// Formats are inherited by mods
@@ -921,30 +935,33 @@ module.exports = (function () {
 
 	Tools.prototype.includeFormats = function () {
 		if (this.formatsLoaded) return this;
-		if (!this.data) this.data = {mod: this.currentMod, Formats: {}, Aliases: {}};
+		if (!this.data) this.data = {mod: this.currentMod};
+		if (!this.data.Formats) this.data.Formats = {};
 
 		// Load [formats] aliases
-		try {
-			var path = './data/' + dataFiles.Aliases;
-			this.data.Aliases = require(path).BattleAliases;
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING ALIASES:" + e.stack);
+		var maybeAliases = tryRequire('./data/' + dataFiles.Aliases);
+		if (maybeAliases.error) {
+			if (maybeAliases.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING ALIASES:" + maybeAliases.error.stack);
 		}
+		var BattleAliases = maybeAliases.result.BattleAliases;
+		if (!BattleAliases || typeof BattleAliases !== 'object') throw new Error ("Corrupted data file: `" + './data/' + dataFiles.Aliases + "`");
+		this.data.Aliases = BattleAliases;
 
 		// Load formats
-		try {
-			var path = './config/formats.js';
-			var configFormats = require(path).Formats;
-			for (var i = 0; i < configFormats.length; i++) {
-				var format = configFormats[i];
-				var id = toId(format.name);
-				format.effectType = 'Format';
-				if (format.challengeShow === undefined) format.challengeShow = true;
-				if (format.searchShow === undefined) format.searchShow = true;
-				this.data.Formats[id] = format;
-			}
-		} catch (e) {
-			if (e.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS: " + e.stack);
+		var maybeFormats = tryRequire('./config/formats.js');
+		if (maybeFormats.error) {
+			if (maybeFormats.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS:" + maybeFormats.error.stack);
+		}
+		var BattleFormats = maybeFormats.result.Formats;
+		if (!Array.isArray(BattleFormats)) throw new Error ("Corrupted formats file: `" + './config/formats.js' + "`");
+
+		for (var i = 0; i < BattleFormats.length; i++) {
+			var format = BattleFormats[i];
+			var id = toId(format.name);
+			format.effectType = 'Format';
+			if (format.challengeShow === undefined) format.challengeShow = true;
+			if (format.searchShow === undefined) format.searchShow = true;
+			this.data.Formats[id] = format;
 		}
 
 		this.formatsLoaded = true;
@@ -969,15 +986,7 @@ module.exports = (function () {
 	// "gen6" is an alias for the current base data
 	moddedTools.gen6 = moddedTools.base;
 
-	var modList;
-
-	try {
-		modList = fs.readdirSync('./mods/');
-	} catch (e) {
-		console.error("Error while loading mods: " + e.stack);
-	}
-
-	modList.forEach(function (mod) {
+	fs.readdirSync('./mods/').forEach(function (mod) {
 		moddedTools[mod] = Tools.construct(mod);
 	});
 
