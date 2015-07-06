@@ -72,8 +72,12 @@ module.exports = (function () {
 			mod: mod
 		};
 		if (mod === 'base') {
-			dataTypes.forEach(function (dataType) {
-				if (typeof dataFiles[dataType] !== 'string') return (data[dataType] = dataFiles[dataType]);
+			for (var i = 0; i < dataTypes.length; i++) {
+				var dataType = dataTypes[i];
+				if (typeof dataFiles[dataType] !== 'string') {
+					data[dataType] = dataFiles[dataType];
+					continue;
+				}
 				try {
 					var path = './data/' + dataFiles[dataType];
 					data[dataType] = require(path)['Battle' + dataType];
@@ -81,12 +85,12 @@ module.exports = (function () {
 					if (e.code !== 'MODULE_NOT_FOUND') console.error('CRASH LOADING DATA: ' + e.stack);
 				}
 				if (!data[dataType]) data[dataType] = {};
-			}, this);
+			}
 			try {
 				var path = './config/formats.js';
 				var configFormats = require(path).Formats;
-				for (var i = 0; i < configFormats.length; i++) {
-					var format = configFormats[i];
+				for (var j = 0; j < configFormats.length; j++) {
+					var format = configFormats[j];
 					var id = toId(format.name);
 					format.effectType = 'Format';
 					if (format.challengeShow === undefined) format.challengeShow = true;
@@ -98,7 +102,8 @@ module.exports = (function () {
 			}
 		} else {
 			var parentData = moddedTools[parentMod].data;
-			dataTypes.forEach(function (dataType) {
+			for (var k = 0; k < dataTypes.length; k++) {
+				var dataType = dataTypes[k];
 				if (typeof dataFiles[dataType] === 'string') {
 					try {
 						var path = './mods/' + mod + '/' + dataFiles[dataType];
@@ -108,26 +113,26 @@ module.exports = (function () {
 					}
 				}
 				if (!data[dataType]) data[dataType] = {};
-				for (var i in parentData[dataType]) {
-					if (data[dataType][i] === null) {
+				for (var key in parentData[dataType]) {
+					if (data[dataType][key] === null) {
 						// null means don't inherit
-						delete data[dataType][i];
-					} else if (!(i in data[dataType])) {
+						delete data[dataType][key];
+					} else if (!(key in data[dataType])) {
 						// If it doesn't exist it's inherited from the parent data
 						if (dataType === 'Pokedex') {
 							// Pokedex entries can be modified too many different ways
-							data[dataType][i] = Object.clone(parentData[dataType][i], true);
+							data[dataType][key] = Object.clone(parentData[dataType][key], true);
 						} else {
-							data[dataType][i] = parentData[dataType][i];
+							data[dataType][key] = parentData[dataType][key];
 						}
-					} else if (data[dataType][i] && data[dataType][i].inherit) {
+					} else if (data[dataType][key] && data[dataType][key].inherit) {
 						// {inherit: true} can be used to modify only parts of the parent data,
 						// instead of overwriting entirely
-						delete data[dataType][i].inherit;
-						Object.merge(data[dataType][i], parentData[dataType][i], false, false);
+						delete data[dataType][key].inherit;
+						Object.merge(data[dataType][key], parentData[dataType][key], false, false);
 					}
 				}
-			});
+			}
 		}
 	}
 	Tools.loadMods = function () {
