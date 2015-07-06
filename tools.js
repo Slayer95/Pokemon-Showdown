@@ -59,6 +59,9 @@ module.exports = (function () {
 		timid: {name:"Timid", plus:'spe', minus:'atk'}
 	};
 
+	var init = typeof global.Symbol === 'function' ? Symbol('init') : '_init';
+	var inherit = typeof global.Symbol === 'function' ? Symbol('inherit') : '_inherit';
+
 	function tryRequire (path) {
 		var ret = {error: null, result: {}};
 		try {
@@ -79,142 +82,34 @@ module.exports = (function () {
 		return ret;
 	}
 
-	function tryBuildTree (parentMods) {
-		try {
-			var didSomething = false;
-			do {
-				didSomething = false;
-				for (var i in parentMods) {
-					if (!moddedTools[i] && moddedTools[parentMods[i]]) {
-						moddedTools[i] = Tools.construct(i, parentMods[i]);
-						didSomething = true;
-					}
-				}
-			} while (didSomething);
-		} catch (e) {
-			console.error("Error while loading mods: " + (e.stack || e));
-			return false;
-		}
-		return true;
-	}
+	function Tools (mod) {
+		if (!mod) mod = 'base';
+		this.isBase = (mod === 'base');
 
-	function Tools(mod, parentMod) {
-		if (!mod) {
-			mod = 'base';
-			this.isBase = true;
-		} else if (!parentMod) {
-			parentMod = 'base';
+		var path = (this.isBase ? './data/' : './mods/' + mod + '/') + dataFiles.Scripts;
+		var maybeScripts = tryRequire(path);
+		if (maybeScripts.error) {
+			if (maybeScripts.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING DATA: " + maybeScripts.error.stack);
+		} else {
+			var BattleScripts = maybeScripts.result.BattleScripts;
+			if (!BattleScripts || typeof BattleScripts !== 'object') throw new Error("Corrupted data file: `" + path + "`");
+			Object.defineProperty(this, init, {value: BattleScripts.init, enumerable: false, writable: false, configurable: false});
+			Object.defineProperty(this, inherit, {value: BattleScripts.inherit, enumerable: false, writable: false, configurable: false});
 		}
 		this.currentMod = mod;
-
-		var data = this.data = {
-			mod: mod
-		};
-		if (mod === 'base') {
-			dataTypes.forEach(function (dataType) {
-				if (typeof dataFiles[dataType] !== 'string') return (data[dataType] = dataFiles[dataType]);
-				var maybeData = tryRequire('./data/' + dataFiles[dataType]);
-				if (maybeData.error) {
-					maybeData.result['Battle' + dataType] = {};
-					if (maybeData.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING " + data.mod.toUpperCase() + " DATA:\n" + maybeData.error.stack);
-				}
-				var BattleData = maybeData.result['Battle' + dataType];
-				if (!BattleData || typeof BattleData !== 'object') throw new Error("Corrupted data file: `" + './data/' + dataFiles[dataType] + "`");
-				data[dataType] = BattleData;
-			}, this);
-
-			var maybeFormats = tryRequire('./config/formats.js');
-			if (maybeFormats.error) {
-				if (maybeFormats.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS:" + maybeFormats.error.stack);
-			}
-			var BattleFormats = maybeFormats.result.Formats;
-			if (!Array.isArray(BattleFormats)) throw new Error ("Corrupted formats file: `" + './config/formats.js' + "`");
-			for (var i = 0; i < BattleFormats.length; i++) {
-				var format = BattleFormats[i];
-				var id = toId(format.name);
-				format.effectType = 'Format';
-				if (format.challengeShow === undefined) format.challengeShow = true;
-				if (format.searchShow === undefined) format.searchShow = true;
-				data.Formats[id] = format;
-			}
-		} else {
-			var parentData = moddedTools[parentMod].data;
-			dataTypes.forEach(function (dataType) {
-				if (typeof dataFiles[dataType] === 'string') {
-					var maybeData = tryRequire('./mods/' + mod + '/' + dataFiles[dataType]);
-					if (maybeData.error) {
-						maybeData.result['Battle' + dataType] = {};
-						if (maybeData.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING " + data.mod.toUpperCase() + " DATA:\n" + maybeData.error.stack);
-					}
-					var BattleData = maybeData.result['Battle' + dataType];
-					if (!BattleData || typeof BattleData !== 'object') throw new Error("Corrupted data file: `" + './mods/' + mod + '/' + dataFiles[dataType] + "`");
-					data[dataType] = BattleData;
-				}
-				if (!data[dataType]) data[dataType] = {};
-				for (var i in parentData[dataType]) {
-					if (data[dataType][i] === null) {
-						// null means don't inherit
-						delete data[dataType][i];
-					} else if (!(i in data[dataType])) {
-						// If it doesn't exist it's inherited from the parent data
-						if (dataType === 'Pokedex') {
-							// Pokedex entries can be modified too many different ways
-							data[dataType][i] = Object.clone(parentData[dataType][i], true);
-						} else {
-							data[dataType][i] = parentData[dataType][i];
-						}
-					} else if (data[dataType][i] && data[dataType][i].inherit) {
-						// {inherit: true} can be used to modify only parts of the parent data,
-						// instead of overwriting entirely
-						delete data[dataType][i].inherit;
-						Object.merge(data[dataType][i], parentData[dataType][i], false, false);
-					}
-				}
-			});
-		}
+		this.parentMod = this.isBase ? '' : (this[inherit] || 'base');
 	}
 
-	Tools.loadMods = function () {
-		if (Tools.modsLoaded) return;
-		var parentMods = Object.create(null);
-
-		var maybeMods = tryReadMods();
-		if (maybeMods.error) {
-			console.error("Error while loading mods: " + maybeMods.error.stack);
-			Tools.modsLoaded = true;
-			return;
-		}
-
-		maybeMods.result.forEach(function (mod) {
-			try {
-				parentMods[mod] = require('./mods/' + mod + '/scripts.js').BattleScripts.inherit || 'base';
-			} catch (e) {
-				if (e.code === 'MODULE_NOT_FOUND') {
-					parentMods[mod] = 'base';
-				} else {
-					console.error("Error while loading mods: " + e.stack);
-				}
-			}
-		});
-
-		tryBuildTree(parentMods);
-
-		Tools.modsLoaded = true;
-	};
-
 	Tools.prototype.mod = function (mod) {
-		Tools.loadMods();
 		if (!moddedTools[mod]) {
 			mod = this.getFormat(mod).mod;
 		}
 		if (!mod) mod = 'base';
-		return moddedTools[mod];
+		return moddedTools[mod].includeData();
 	};
 	Tools.prototype.modData = function (dataType, id) {
 		if (this.isBase) return this.data[dataType][id];
-		var parentMod = this.data.Scripts.inherit;
-		if (!parentMod) parentMod = 'base';
-		if (this.data[dataType][id] !== moddedTools[parentMod].data[dataType][id]) return this.data[dataType][id];
+		if (this.data[dataType][id] !== moddedTools[this.parentMod].data[dataType][id]) return this.data[dataType][id];
 		return (this.data[dataType][id] = Object.clone(this.data[dataType][id], true));
 	};
 
@@ -1015,34 +910,136 @@ module.exports = (function () {
 		return team;
 	};
 
+	Tools.prototype.includeData = function () {
+		if (this.isLoaded) return this;
+		if (!this.data) this.data = {mod: this.currentMod};
+		var data = this.data;
+
+		var basePath = './data/';
+		var parentTools;
+		if (this.parentMod) {
+			parentTools = moddedTools[this.parentMod];
+			if (!parentTools || parentTools === this) throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
+			if (!parentTools.isLoaded) parentTools.includeData();
+			basePath = './mods/' + this.currentMod + '/';
+		}
+
+		dataTypes.forEach(function (dataType) {
+			if (typeof dataFiles[dataType] !== 'string') return (data[dataType] = dataFiles[dataType]);
+			if (dataType === 'Natures') {
+				if (data.mod === 'base') return (data[dataType] = BattleNatures);
+				return;
+			}
+			var maybeData = tryRequire(basePath + dataFiles[dataType]);
+			if (maybeData.error) {
+				maybeData.result['Battle' + dataType] = {};
+				if (maybeData.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING " + data.mod.toUpperCase() + " DATA:\n" + maybeData.error.stack);
+			}
+			var BattleData = maybeData.result['Battle' + dataType];
+			if (!BattleData || typeof BattleData !== 'object') throw new Error("Corrupted data file: `" + basePath + dataFiles[dataType] + "`");
+			if (BattleData !== data[dataType]) data[dataType] = Object.merge(BattleData, data[dataType]);
+		});
+		if (this.isBase) {
+			// Formats are inherited by mods
+			this.includeFormats();
+		} else {
+			dataTypes.forEach(function (dataType) {
+				var parentTypedData = parentTools.data[dataType];
+				if (!data[dataType]) data[dataType] = {};
+				for (var key in parentTypedData) {
+					if (data[dataType][key] === null) {
+						// null means don't inherit
+						delete data[dataType][key];
+					} else if (!(key in data[dataType])) {
+						// If it doesn't exist it's inherited from the parent data
+						if (dataType === 'Pokedex') {
+							// Pokedex entries can be modified too many different ways
+							data[dataType][key] = Object.clone(parentTypedData[key], true);
+						} else {
+							data[dataType][key] = parentTypedData[key];
+						}
+					} else if (data[dataType][key] && data[dataType][key].inherit) {
+						// {inherit: true} can be used to modify only parts of the parent data,
+						// instead of overwriting entirely
+						delete data[dataType][key].inherit;
+						Object.merge(data[dataType][key], parentTypedData[key], false, false);
+					}
+				}
+			});
+		}
+
+		// Scripts override Tools.
+		this.includeScripts();
+
+		// Execute initialization script.
+		if (typeof this[init] === 'function') this[init]();
+
+		this.isLoaded = true;
+		return this;
+	};
+
+	Tools.prototype.includeFormats = function () {
+		if (this.formatsLoaded) return this;
+		if (!this.data) this.data = {mod: this.currentMod};
+		if (!this.data.Formats) this.data.Formats = {};
+
+		// Load [formats] aliases
+		var maybeAliases = tryRequire('./data/' + dataFiles.Aliases);
+		if (maybeAliases.error) {
+			if (maybeAliases.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING ALIASES:" + maybeAliases.error.stack);
+			throw maybeAliases.error;
+		}
+		var BattleAliases = maybeAliases.result.BattleAliases;
+		if (!BattleAliases || typeof BattleAliases !== 'object') throw new Error ("Corrupted data file: `" + './data/' + dataFiles.Aliases + "`");
+		this.data.Aliases = BattleAliases;
+
+		// Load formats
+		var maybeFormats = tryRequire('./config/formats.js');
+		if (maybeFormats.error) {
+			if (maybeFormats.error.code !== 'MODULE_NOT_FOUND') console.error("CRASH LOADING FORMATS:" + maybeFormats.error.stack);
+		}
+		var BattleFormats = maybeFormats.result.Formats;
+		if (!Array.isArray(BattleFormats)) throw new Error ("Corrupted formats file: `" + './config/formats.js' + "`");
+
+		for (var i = 0; i < BattleFormats.length; i++) {
+			var format = BattleFormats[i];
+			var id = toId(format.name);
+			format.effectType = 'Format';
+			if (format.challengeShow === undefined) format.challengeShow = true;
+			if (format.searchShow === undefined) format.searchShow = true;
+			this.data.Formats[id] = format;
+		}
+
+		this.formatsLoaded = true;
+		return this;
+	};
+
 	/**
 	 * Install our Tools functions into the battle object
 	 */
-	Tools.prototype.install = function (battle) {
-		for (var i in this.data.Scripts) {
-			battle[i] = this.data.Scripts[i];
+	Tools.prototype.includeScripts = function (target) {
+		var scripts = this.data.Scripts;
+		if (!scripts) return this;
+		if (!target) target = this;
+		for (var key in scripts) {
+			target[key] = scripts[key];
 		}
+		return this;
 	};
 
-	Tools.construct = function (mod, parentMod) {
-		// Scripts override Tools.
-		var ret = new Tools(mod, parentMod);
-		ret.install(ret);
-		if (ret.init) {
-			if (parentMod && ret.init === moddedTools[parentMod].data.Scripts.init) {
-				// don't inherit init
-				delete ret.init;
-			} else {
-				ret.init();
-			}
-		}
-		return ret;
-	};
-
-	moddedTools.base = Tools.construct();
+	moddedTools.base = new Tools();
 
 	// "gen6" is an alias for the current base data
 	moddedTools.gen6 = moddedTools.base;
+
+	var maybeMods = tryReadMods();
+	if (maybeMods.error) {
+		console.error("Error while loading mods: " + maybeMods.error.stack);
+	} else {
+		maybeMods.result.forEach(function (mod) {
+			moddedTools[mod] = new Tools(mod);
+		});
+	}
 
 	Object.getPrototypeOf(moddedTools.base).moddedTools = moddedTools;
 
