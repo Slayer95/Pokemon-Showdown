@@ -307,6 +307,8 @@ global.toId = function (text) {
 
 global.Tools = require('./tools.js').includeFormats();
 
+global.Tools = require('./tools.js').includeFormats();
+
 global.LoginServer = require('./loginserver.js');
 
 global.Users = require('./users.js');
