@@ -500,7 +500,7 @@ var commands = exports.commands = {
 		room.onUpdateIdentity(targetUser);
 		Rooms.global.writeChatRoomData();
 	},
-	roomownerhelp: ["/roomowner [username] - Appoints [username] as a room owner. Removes official status. Requires: ~"],
+	roomownerhelp: ["/roomowner [username] - Appoints [username] as a room owner. Requires: ~"],
 
 	roomdeowner: 'deroomowner',
 	deroomowner: function (target, room, user) {
@@ -510,21 +510,19 @@ var commands = exports.commands = {
 		if (!target) return this.parse('/help roomdeowner');
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
-		var name = this.targetUsername;
-		var userid = toId(name);
-		if (!userid || userid === '') return this.sendReply("User '" + name + "' does not exist.");
+		if (!targetUser) return this.sendReply("User '" + this.targetUsername + "' does not exist.");
 
-		if (room.auth[userid] !== '#') return this.sendReply("User '" + name + "' is not a room owner.");
+		if (room.auth[targetUser.userid] !== '#') return this.sendReply("User '" + this.targetUsername + "' is not a room owner.");
 		if (!this.can('makeroom', null, room)) return false;
 
-		delete room.auth[userid];
-		this.sendReply("(" + name + " is no longer Room Owner.)");
-		if (targetUser) targetUser.updateIdentity();
+		delete room.auth[targetUser.userid];
+		this.sendReply("(" + this.targetUsername + " is no longer Room Owner.)");
+		targetUser.updateIdentity();
 		if (room.chatRoomData) {
 			Rooms.global.writeChatRoomData();
 		}
 	},
-	deroomownerhelp: ["/roomdeowner [username] - Removes [username]'s status as a room owner. Requires: ~"],
+	deroomownerhelp: ["/deroomowner [username] - Removes [username]'s status as a room owner. Requires: ~"],
 
 	roomdemote: 'roompromote',
 	roompromote: function (target, room, user, connection, cmd) {
@@ -795,7 +793,7 @@ var commands = exports.commands = {
 		if (!targetUser || !targetUser.connected) {
 			return this.sendReply("User " + this.targetUsername + " not found.");
 		}
-		if (targetRoom.id === "global") return this.sendReply("Users cannot be redirected to the global room.");
+		if (room.id === 'global' || targetRoom.id === 'global') return this.sendReply("Users cannot be redirected from nor to the global room.");
 		if (Rooms.rooms[targetRoom.id].users[targetUser.userid]) {
 			return this.sendReply("User " + targetUser.name + " is already in the room " + targetRoom.title + "!");
 		}
