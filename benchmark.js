@@ -62,12 +62,15 @@ function logStats () {
 
 var env = {};
 var childProcess;
+var scheduleNext = function () {
+	setTimeout(execNext, 10000);
+};
 var execNext = function () {
 	if (currentExecutions >= maxExecutions) return false;
 	currentExecutions++;
 	childProcess = exec('node benchmark-child.js', {env: env}, callback);
 	return true;
-}
+};
 
 var branches = [['old', 'master'], ['new', 'tools-split'], ['new', 'tools-split'], ['old', 'master']];
 branches.forEach(function (branchData) {
@@ -79,13 +82,16 @@ branches.forEach(function (branchData) {
 function switchBranch () {
 	var nextBranch = branches.shift();
 	if (!nextBranch) return logStats();
-	exec('git checkout ' + nextBranch[1], function (err, stdout, stderr) {
+	var branchChild = exec('git checkout ' + nextBranch[1], function (err, stdout, stderr) {
 		if (err) throw err;
 		if (stderr && !stderr.includes("Already on ") && !stderr.includes("Switched to branch")) throw new Error(stderr);
 		console.log("Branch `" + nextBranch[1] + "`");
 		env.type = nextBranch[0];
 		currentExecutions = 0;
-		execNext();
+		branchChild.kill('SIGTERM');
+		branchChild.kill('SIGINT');
+		branchChild.kill('SIGKILL');
+		process.nextTick(execNext);
 	});
 }
 
@@ -103,5 +109,4 @@ function callback (err, stdout, stderr) {
 	}
 }
 
-switchBranch();
-
+setTimeout(switchBranch, 90000);
