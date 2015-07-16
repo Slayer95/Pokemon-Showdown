@@ -25,7 +25,11 @@ function newMethod () {
 var testFunction = process.env.type === 'old' ? originalMethod : newMethod;
 var option = '';
 
-var hrtime = process.hrtime();
-testFunction();
-var diff = process.hrtime(hrtime);
-process.stdout.write('' + (diff[0] * 1e9 + diff[1]));
+function runBenchmark () {
+	var hrtime = process.hrtime();
+	testFunction();
+	var diff = process.hrtime(hrtime);
+	process.stdout.write('' + (diff[0] * 1e9 + diff[1]));
+}
+
+setTimeout(runBenchmark, 15000);
