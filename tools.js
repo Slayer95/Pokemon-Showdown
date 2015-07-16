@@ -1011,13 +1011,14 @@ module.exports = (function () {
 	Tools.construct = function (mod, parentMod) {
 		// Scripts override Tools.
 		var ret = new Tools(mod, parentMod);
-		ret.install(ret);
-		if (ret.init) {
-			if (parentMod && ret.init === moddedTools[parentMod].data.Scripts.init) {
+		var scripts = ret.data.Scripts;
+		if (scripts.gen) ret.gen = scripts.gen;
+		if (scripts.init) {
+			if (parentMod && scripts.init === moddedTools[parentMod].data.Scripts.init) {
 				// don't inherit init
-				delete ret.init;
+				delete scripts.init;
 			} else {
-				ret.init();
+				scripts.init.call(ret);
 			}
 		}
 		return ret;
