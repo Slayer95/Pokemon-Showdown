@@ -69,7 +69,7 @@ var execNext = function () {
 	return true;
 }
 
-var branches = [['old', 'master'], ['new', 'tools-split'], ['new', 'tools-split'], ['old', 'master'], ['old', 'master'], ['new', 'tools-split'], ['old', 'master'], ['new', 'tools-split'], ['old', 'master']];
+var branches = [['old', 'master'], ['new', 'tools-split'], ['new', 'tools-split'], ['old', 'master']];
 branches.forEach(function (branchData) {
 	var envType = branchData[0];
 	if (times[envType]) return;
