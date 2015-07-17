@@ -1849,18 +1849,16 @@ var commands = exports.commands = {
 		if (showSeasonal) {
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3491902/\">Seasonal Ladder</a><br />";
 		}
-		if (buffer.length) {
-			this.sendReplyBox(buffer);
-		}
-		if (!target) return;
+		if (!target) return this.sendReplyBox(buffer);
 		if (target === 'all') {
 			this.parse('/formathelp omofthemonth');
 			this.parse('/formathelp othermetagames');
-			return;
+			return this.sendReply('|raw|<center>' + buffer + '</center>');
 		}
 		if (showMonthly) this.target = 'omofthemonth';
 		if (showSeasonal) this.target = 'seasonal';
-		return this.run('formathelp');
+		this.run('formathelp');
+		return this.sendReply('|raw|<center>' + buffer + '</center>');
 	},
 	othermetashelp: ["/om - Provides links to information on the Other Metagames.",
 		"!om - Show everyone that information. Requires: + % @ # & ~"],
