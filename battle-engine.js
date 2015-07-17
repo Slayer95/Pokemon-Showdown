@@ -304,6 +304,7 @@ BattlePokemon = (function () {
 		this.clearVolatile(true);
 	}
 
+	BattlePokemon.prototype.requestData = null;
 	BattlePokemon.prototype.trapped = false;
 	BattlePokemon.prototype.maybeTrapped = false;
 	BattlePokemon.prototype.maybeDisabled = false;
@@ -528,10 +529,15 @@ BattlePokemon = (function () {
 			thisTurn: true
 		};
 	};
-	BattlePokemon.prototype.getLockedMove = function () {
+	BattlePokemon.prototype.getLockedMove = function (update) {
+		if (!update && this.requestData) return this.requestData.lockedMove;
 		var lockedMove = this.battle.runEvent('LockMove', this);
 		if (lockedMove === true) lockedMove = false;
 		return lockedMove;
+	};
+	BattlePokemon.prototype.getLockedMoveTarget = function (update) {
+		if (!update && this.requestData) return this.requestData.lockedMoveTarget;
+		return this.battle.runEvent('LockMoveTarget', this) || 0;
 	};
 	BattlePokemon.prototype.getMoves = function (lockedMove, restrictData) {
 		if (lockedMove) {
@@ -586,13 +592,19 @@ BattlePokemon = (function () {
 
 		return [];
 	};
-	BattlePokemon.prototype.getRequestData = function () {
-		var lockedMove = this.getLockedMove();
+	BattlePokemon.prototype.getRequestData = function (update) {
+		if (!update && this.requestData) return this.requestData;
+
+		var lockedMove = this.getLockedMove(true);
 
 		// Information should be restricted for the last active Pokémon
 		var isLastActive = this.isLastActive();
 		var moves = this.getMoves(lockedMove, isLastActive);
 		var data = {moves: moves.length ? moves : [{move: 'Struggle', id: 'struggle'}]};
+		if (lockedMove) {
+			data.lockedMove = lockedMove;
+			data.lockedMoveTarget = this.getLockedMoveTarget(true);
+		}
 
 		if (isLastActive) {
 			if (this.maybeDisabled) {
@@ -607,7 +619,7 @@ BattlePokemon = (function () {
 			if (this.trapped) data.trapped = true;
 		}
 
-		return data;
+		return (this.requestData = data);
 	};
 	BattlePokemon.prototype.isLastActive = function () {
 		if (!this.isActive) return false;
@@ -1474,7 +1486,7 @@ BattleSide = (function () {
 					decisions.push({
 						choice: 'move',
 						pokemon: pokemon,
-						targetLoc: this.battle.runEvent('LockMoveTarget', pokemon) || 0,
+						targetLoc: pokemon.getLockedMoveTarget(),
 						move: lockedMove
 					});
 					continue;
@@ -2603,13 +2615,13 @@ Battle = (function () {
 			var activeData;
 			this.p1.currentRequest = 'move';
 			activeData = this.p1.active.map(function (pokemon) {
-				if (pokemon) return pokemon.getRequestData();
+				if (pokemon) return pokemon.getRequestData(true);
 			});
 			p1request = {active: activeData, side: this.p1.getData(), rqid: this.rqid};
 
 			this.p2.currentRequest = 'move';
 			activeData = this.p2.active.map(function (pokemon) {
-				if (pokemon) return pokemon.getRequestData();
+				if (pokemon) return pokemon.getRequestData(true);
 			});
 			p2request = {active: activeData, side: this.p2.getData(), rqid: this.rqid};
 			break;
@@ -3988,7 +4000,7 @@ Battle = (function () {
 					decisions.push({
 						choice: 'move',
 						pokemon: pokemon,
-						targetLoc: this.runEvent('LockMoveTarget', pokemon) || 0,
+						targetLoc: pokemon.getLockedMoveTarget(),
 						move: lockedMove
 					});
 					continue;
