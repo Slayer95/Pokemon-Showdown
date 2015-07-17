@@ -109,7 +109,7 @@ process.on('message', function (message) {
 						'Additional information:\n' +
 						'message = ' + message + '\n' +
 						'currentRequest = ' + prevRequest + '\n\n' +
-						'requestData = ' + JSON.stringify(battle.sides.map(function (side) {return side.active.map(function (pokemon) {return pokemon && pokemon.getRequestData();});})) + '\n\n' +
+						'requestData = ' + JSON.stringify(battle.sides.map(function (side) {return side && side.active.map(function (pokemon) {return pokemon && pokemon.getRequestData();});})) + '\n\n' +
 						'Log:\n' + battle.log.join('\n').replace(/\n\|split\n[^\n]*\n[^\n]*\n[^\n]*\n/g, '\n');
 				var fakeErr = {stack: stack};
 				require('./crashlogger.js')(fakeErr, 'A battle');
