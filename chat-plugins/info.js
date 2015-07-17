@@ -1840,25 +1840,33 @@ var commands = exports.commands = {
 			matched = true;
 			buffer += "- <a href=\"https://www.smogon.com/tiers/om/\">Other Metagames Hub</a><br />";
 			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3505031/\">Other Metagames Index</a><br />";
+			if (!target) return this.sendReplyBox(buffer);
 		}
 		var showMonthly = (target === 'all' || target === 'omofthemonth' || target === 'omotm' || target === 'month');
 		var showSeasonal = (target === 'all' || target === 'seasonal');
-		if (showMonthly) {
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3541792/\">Other Metagame of the Month</a><br />";
-		}
-		if (showSeasonal) {
-			buffer += "- <a href=\"https://www.smogon.com/forums/threads/3491902/\">Seasonal Ladder</a><br />";
-		}
-		if (!target) return this.sendReplyBox(buffer);
+		var monthBuffer = "- <a href=\"https://www.smogon.com/forums/threads/3541792/\">Other Metagame of the Month</a>";
+		var seasonBuffer = "- <a href=\"https://www.smogon.com/forums/threads/3491902/\">Seasonal Ladder</a>";
+
 		if (target === 'all') {
+			// Display OMotM formats, with forum thread links as caption
 			this.parse('/formathelp omofthemonth');
+			if (showMonthly) this.sendReply('|raw|<center>' + monthBuffer + '</center>');
+			if (showSeasonal) this.sendReply('|raw|<center>' + seasonBuffer + '</center>');
+
+			// Display the rest of OM formats, with OM hub/index forum links as caption
 			this.parse('/formathelp othermetagames');
 			return this.sendReply('|raw|<center>' + buffer + '</center>');
 		}
-		if (showMonthly) this.target = 'omofthemonth';
-		if (showSeasonal) this.target = 'seasonal';
-		this.run('formathelp');
-		return this.sendReply('|raw|<center>' + buffer + '</center>');
+		if (showMonthly) {
+			this.target = 'omofthemonth';
+			this.run('formathelp');
+			this.sendReply('|raw|<center>' + monthBuffer + '</center>');
+			this.sendReply('|raw|<center>' + seasonBuffer + '</center>');
+		} else if (showSeasonal) {
+			this.target = 'seasonal';
+			this.run('formathelp');
+			this.sendReply('|raw|<center>' + seasonBuffer + '</center>');
+		}
 	},
 	othermetashelp: ["/om - Provides links to information on the Other Metagames.",
 		"!om - Show everyone that information. Requires: + % @ # & ~"],
