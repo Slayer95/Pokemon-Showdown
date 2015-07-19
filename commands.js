@@ -535,15 +535,14 @@ var commands = exports.commands = {
 		target = this.splitTarget(target, true);
 		var targetUser = this.targetUser;
 		var userid = toId(this.targetUsername);
-		var name = targetUser ? targetUser.name : this.targetUsername;
 
 		if (!userid) return this.parse('/help roompromote');
 		if (!room.auth || !room.auth[userid]) {
 			if (!targetUser) {
-				return this.sendReply("User '" + name + "' is offline and unauthed, and so can't be promoted.");
+				return this.sendReply("User '" + this.targetUsername + "' is offline and unauthed, and so can't be promoted.");
 			}
 			if (!targetUser.registered) {
-				return this.sendReply("User '" + name + "' is unregistered, and so can't be promoted.");
+				return this.sendReply("User '" + this.targetUsername + "' is unregistered, and so can't be promoted.");
 			}
 		}
 
@@ -563,7 +562,7 @@ var commands = exports.commands = {
 
 		var groupName = Config.groups[nextGroup].name || "regular user";
 		if ((room.auth[userid] || Config.groupsranking[0]) === nextGroup) {
-			return this.sendReply("User '" + name + "' is already a " + groupName + " in this room.");
+			return this.sendReply("User '" + this.targetUsername + "' is already a " + groupName + " in this room.");
 		}
 		if (currentGroup !== ' ' && !user.can('room' + (Config.groups[currentGroup] ? Config.groups[currentGroup].id : 'voice'), null, room)) {
 			return this.sendReply("/" + cmd + " - Access denied for promoting/demoting from " + (Config.groups[currentGroup] ? Config.groups[currentGroup].name : "an undefined group") + ".");
@@ -582,9 +581,9 @@ var commands = exports.commands = {
 			this.privateModCommand("(" + name + " was demoted to Room " + groupName + " by " + user.name + ".)");
 			if (targetUser && Rooms.rooms[room.id].users[targetUser.userid]) targetUser.popup("You were demoted to Room " + groupName + " by " + user.name + ".");
 		} else if (nextGroup === '#') {
-			this.addModCommand("" + name + " was promoted to " + groupName + " by " + user.name + ".");
+			this.addModCommand("" + this.targetUsername + " was promoted to " + groupName + " by " + user.name + ".");
 		} else {
-			this.addModCommand("" + name + " was promoted to Room " + groupName + " by " + user.name + ".");
+			this.addModCommand("" + this.targetUsername + " was promoted to Room " + groupName + " by " + user.name + ".");
 		}
 
 		if (targetUser) targetUser.updateIdentity(room.id);
