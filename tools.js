@@ -82,7 +82,7 @@ module.exports = (function () {
 			if (maybeScripts.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING DATA: " + maybeScripts.stack);
 		} else {
 			var BattleScripts = maybeScripts.BattleScripts;
-			if (!BattleScripts || typeof BattleScripts !== 'object') throw new TypeError("Exported property `BattleScripts`from `" + './data/' + dataFiles[dataType] + "` must be an object except `null`.");
+			if (!BattleScripts || typeof BattleScripts !== 'object') throw new TypeError("Exported property `BattleScripts`from `./data/scripts.js` must be an object except `null`.");
 			if (BattleScripts.init) Object.defineProperty(this, init, {value: BattleScripts.init, enumerable: false, writable: false, configurable: false});
 			if (BattleScripts.inherit) Object.defineProperty(this, inherit, {value: BattleScripts.inherit, enumerable: false, writable: false, configurable: false});
 		}
@@ -97,7 +97,7 @@ module.exports = (function () {
 			moddedTools[modList[i]] = new Tools(modList[i]);
 		}
 		Tools.preloadedMods = true;
-	}
+	};
 
 	Tools.prototype.mod = function (mod) {
 		if (!moddedTools[mod]) {
@@ -991,7 +991,7 @@ module.exports = (function () {
 			maybeAliases.BattleAliases = {}; // Fall back to an empty object
 		}
 		var BattleAliases = maybeAliases.BattleAliases;
-		if (!BattleAliases || typeof BattleAliases !== 'object') throw new TypeError("Exported property `BattleAliases`from `" + "./data/" + dataFiles[dataType] + "` must be an object except `null`.");
+		if (!BattleAliases || typeof BattleAliases !== 'object') throw new TypeError("Exported property `BattleAliases`from `" + "./data/aliases.js` must be an object except `null`.");
 		this.data.Aliases = BattleAliases;
 
 		// Load formats
