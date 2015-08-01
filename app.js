@@ -307,11 +307,11 @@ global.toId = function (text) {
 	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
 };
 
-global.LoginServer = require('./loginserver.js');
-
 global.Users = require('./users.js');
 
 global.Rooms = require('./rooms.js');
+
+global.LoginServer = require('./loginserver.js');
 
 delete process.send; // in case we're a child process
 global.Verifier = require('./verifier.js');

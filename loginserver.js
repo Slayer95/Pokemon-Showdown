@@ -92,7 +92,7 @@ var LoginServer = module.exports = (function () {
 				dataString += '&' + i + '=' + encodeURIComponent('' + data[i]);
 			}
 		}
-		var req = http.get(url.parse(this.uri + 'action.php?act=' + action + '&serverid=' + Config.serverid + '&servertoken=' + encodeURIComponent(Config.servertoken) + '&nocache=' + new Date().getTime() + dataString), function (res) {
+		var req = http.get(url.parse(this.uri + 'action.php?act=' + action + '&serverid=' + Config.serverid + '&servertoken=' + encodeURIComponent(Config.servertoken) + '&serverversion=' + Rooms.global.version + '&nocache=' + new Date().getTime() + dataString), function (res) {
 			var buffer = '';
 			res.setEncoding('utf8');
 
