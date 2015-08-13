@@ -1142,6 +1142,7 @@ exports.BattleScripts = {
 			// Choose next 4 moves from learnset/viable moves and add them to moves list:
 			while (moves.length < 4 && movePool.length) {
 				var moveid = this.sampleNoReplace(movePool);
+				this.debug('sampled: ' + moveid);
 				if (moveid.substr(0, 11) === 'hiddenpower') {
 					availableHP--;
 					if (hasMove['hiddenpower']) continue;
@@ -1154,6 +1155,8 @@ exports.BattleScripts = {
 
 			counter = this.queryMoves(moves, hasType, hasAbility);
 
+			this.debug('hasMove: ' + Object.keys(hasMove).join(', '));
+			this.debug('movePool.length: ' + movePool.length);
 			// Iterate through the moves again, this time to cull them:
 			for (var k = 0; k < moves.length; k++) {
 				var moveid = moves[k];
@@ -1444,6 +1447,7 @@ exports.BattleScripts = {
 					rejected = true;
 				}
 
+				this.debug('rejected: ' + (rejected ? moves[k] : 'none'));
 				// Remove rejected moves from the move list
 				if (rejected && (movePool.length - availableHP || availableHP && (move.id === 'hiddenpower' || !hasMove['hiddenpower']))) {
 					moves.splice(k, 1);
@@ -1463,6 +1467,8 @@ exports.BattleScripts = {
 				if (counter.damagingMoves.length === 0) {
 					// A set shouldn't have no attacking moves
 					moves.splice(this.random(moves.length), 1);
+					this.debug('counter.damagingMoves.length === 0');
+					this.debug('removed undamaging move; now: ' + moves.join(', '));
 				} else if (counter.damagingMoves.length === 1) {
 					var damagingid = counter.damagingMoves[0].id;
 					// Night Shade, Seismic Toss, etc. don't count:
@@ -1490,6 +1496,8 @@ exports.BattleScripts = {
 							}
 						}
 						if (replace) moves.splice(counter.damagingMoveIndex[damagingid], 1);
+						if (replace) this.debug('counter.damagingMoves.length === 1');
+						if (replace) this.debug('removed damaging move ' + damagingid + '; now: ' + moves.join(', '));
 					}
 				} else if (counter.damagingMoves.length === 2 && !counter.stab) {
 					// If you have two attacks, neither is STAB, and the combo isn't Electric/Ice or Fighting/Ghost, reject one of them at random.
@@ -1506,6 +1514,8 @@ exports.BattleScripts = {
 						}
 						if (rejectableMoves.length) {
 							moves.splice(rejectableMoves[this.random(rejectableMoves.length)], 1);
+							this.debug('counter.damagingMoves.length === 2 && !counter.stab');
+							this.debug('removed rejectable move; now: ' + moves.join(', '));
 						}
 					}
 				} else if (!counter.stab || ((hasAbility['Aerilate'] || hasAbility['Pixilate'] || hasAbility['Refrigerate']) && !counter['ate'])) {
@@ -1520,6 +1530,8 @@ exports.BattleScripts = {
 					}
 					if (rejectableMoves.length) {
 						moves.splice(rejectableMoves[this.random(rejectableMoves.length)], 1);
+						this.debug("!counter.stab || ((hasAbility['Aerilate'] || hasAbility['Pixilate'] || hasAbility['Refrigerate']) && !counter['ate'])");
+						this.debug('removed rejectable move; now: ' + moves.join(', '));
 					}
 				}
 			}
