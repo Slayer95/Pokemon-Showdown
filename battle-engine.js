@@ -173,9 +173,15 @@ BattlePokemon = (function () {
 
 		this.level = this.battle.clampIntRange(set.forcedLevel || set.level || 100, 1, 9999);
 
-		var genders = {M:'M', F:'F'};
-		this.gender = this.template.gender || genders[set.gender] || (Math.random() * 2 < 1 ? 'M' : 'F');
-		if (this.gender === 'N') this.gender = '';
+		// Random assignment of gender.
+		var gender = this.template.gender;
+		if (!gender && set.gender !== 'M' && set.gender !== 'F') {
+			// Edit the set so that the actual gender shows up in the battle logs.
+			set.gender = Math.random() * 2 < 1 ? 'M' : 'F';
+			gender = set.gender;
+		}
+		this.gender = (gender === 'N' ? '' : gender);
+
 		this.happiness = typeof set.happiness === 'number' ? this.battle.clampIntRange(set.happiness, 0, 255) : 255;
 		this.pokeball = this.set.pokeball || 'pokeball';
 
@@ -1469,8 +1475,7 @@ BattleSide = (function () {
 			return active && !active.fainted;
 		});
 		if (!actives.length) return null;
-		var i = Math.floor(Math.random() * actives.length);
-		return actives[i];
+		return actives[this.battle.random(actives.length)];
 	};
 	BattleSide.prototype.addSideCondition = function (status, source, sourceEffect) {
 		status = this.battle.getEffect(status);
@@ -3630,24 +3635,30 @@ Battle = (function () {
 			var adjacentAllies = [pokemon.side.active[pokemon.position - 1], pokemon.side.active[pokemon.position + 1]].filter(function (active) {
 				return active && !active.fainted;
 			});
-			if (adjacentAllies.length) return adjacentAllies[Math.floor(Math.random() * adjacentAllies.length)];
+			if (adjacentAllies.length) return adjacentAllies[this.random(adjacentAllies.length)];
 			return pokemon;
 		}
 		if (move.target === 'self' || move.target === 'all' || move.target === 'allySide' || move.target === 'allyTeam' || move.target === 'adjacentAllyOrSelf') {
 			return pokemon;
 		}
-		if (pokemon.side.active.length > 2) {
+		if (pokemon.side.active.length >= 2) {
 			if (move.target === 'adjacentFoe' || move.target === 'normal' || move.target === 'randomNormal') {
 				var foeActives = pokemon.side.foe.active;
 				var frontPosition = foeActives.length - 1 - pokemon.position;
 				var adjacentFoes = foeActives.slice(frontPosition < 1 ? 0 : frontPosition - 1, frontPosition + 2).filter(function (active) {
 					return active && !active.fainted;
 				});
-				if (adjacentFoes.length) return adjacentFoes[Math.floor(Math.random() * adjacentFoes.length)];
-				// no valid target at all, return a foe for any possible redirection
+				if (adjacentFoes.length) return adjacentFoes[this.random(adjacentFoes.length)];
+				// No valid targets. Just return a foe.
+			} else if (move.target === 'any') {
+				var foeActives = pokemon.side.foe.active.filter(function (active) {
+					return active && !active.fainted;
+				});
+				if (foeActives.length) return foeActives[this.random(foeActives.length)];
+				// No valid targets. Just return a foe.
 			}
 		}
-		return pokemon.side.foe.randomActive() || pokemon.side.foe.active[0];
+		return pokemon.side.foe.active[0];
 	};
 	Battle.prototype.checkFainted = function () {
 		function check(a) {
