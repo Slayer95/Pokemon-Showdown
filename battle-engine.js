@@ -226,7 +226,7 @@ BattlePokemon = (function () {
 					id: move.id,
 					pp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
 					maxpp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
-					target: (move.nonGhostTarget && !this.hasType('Ghost') ? move.nonGhostTarget : move.target),
+					target: this.getTargetData(move.id).hit,
 					disabled: false,
 					used: false
 				});
@@ -495,43 +495,44 @@ BattlePokemon = (function () {
 		}
 		return null;
 	};
-	BattlePokemon.prototype.getMoveTargets = function (move, target) {
+	BattlePokemon.prototype.getTargetData = function (move) {
+		move = this.battle.getMove(move);
+		return {
+			hit: (move.nonGhostTarget && !this.hasType('Ghost') ? move.nonGhostTarget : move.target),
+			pp: move.pressureTarget || move.target
+		};
+	};
+	BattlePokemon.prototype.getMoveTargets = function (move, target, targetType) {
+		if (!targetType) targetType = move.target;
+
 		let targets = [];
-		switch (move.target) {
+
+		switch (targetType) {
 		case 'all':
 		case 'foeSide':
 		case 'allySide':
-		case 'allyTeam':
-			if (!move.target.startsWith('foe')) {
-				for (let i = 0; i < this.side.active.length; i++) {
-					if (this.side.active[i] && !this.side.active[i].fainted) {
-						targets.push(this.side.active[i]);
-					}
-				}
-			}
-			if (!move.target.startsWith('ally')) {
-				for (let i = 0; i < this.side.foe.active.length; i++) {
-					if (this.side.foe.active[i] && !this.side.foe.active[i].fainted) {
-						targets.push(this.side.foe.active[i]);
-					}
-				}
+		case 'allyTeam': {
+			let preTargets = [];
+			if (!targetType.startsWith('foe')) preTargets = preTargets.concat(this.side.active);
+			if (!targetType.startsWith('ally')) preTargets = preTargets.concat(this.side.foe.active);
+			for (let i = 0; i < preTargets.length; i++) {
+				if (!preTargets[i] || preTargets[i].fainted) continue;
+				targets.push(preTargets[i]);
 			}
 			break;
+		}
+
 		case 'allAdjacent':
-		case 'allAdjacentFoes':
-			if (move.target === 'allAdjacent') {
-				for (let i = 0; i < this.side.active.length; i++) {
-					if (this.side.active[i] && this.battle.isAdjacent(this, this.side.active[i])) {
-						targets.push(this.side.active[i]);
-					}
-				}
-			}
-			for (let i = 0; i < this.side.foe.active.length; i++) {
-				if (this.side.foe.active[i] && this.battle.isAdjacent(this, this.side.foe.active[i])) {
-					targets.push(this.side.foe.active[i]);
-				}
+		case 'allAdjacentFoes': {
+			let preTargets = this.side.foe.active;
+			if (targetType === 'allAdjacent') preTargets = preTargets.concat(this.side.active);
+			for (let i = 0; i < preTargets.length; i++) {
+				if (!preTargets[i] || !this.battle.isAdjacent(this, preTargets[i])) continue;
+				targets.push(preTargets[i]);
 			}
 			break;
+		}
+
 		default:
 			if (!target || (target.fainted && target.side !== this.side)) {
 				// If a targeted foe faints, the move is retargeted
@@ -540,20 +541,9 @@ BattlePokemon = (function () {
 			if (target.side.active.length > 1) {
 				target = this.battle.runEvent('RedirectTarget', this, this, move, target);
 			}
-			targets = [target];
-
-			// Resolve apparent targets for Pressure.
-			if (move.pressureTarget) {
-				// At the moment, this is the only supported target.
-				if (move.pressureTarget === 'foeSide') {
-					for (let i = 0; i < this.side.foe.active.length; i++) {
-						if (this.side.foe.active[i] && !this.side.foe.active[i].fainted) {
-							targets.push(this.side.foe.active[i]);
-						}
-					}
-				}
-			}
+			targets.push(target);
 		}
+
 		return targets;
 	};
 	BattlePokemon.prototype.ignoringAbility = function () {
@@ -3615,9 +3605,11 @@ Battle = (function () {
 	};
 	Battle.prototype.getTarget = function (decision) {
 		let move = this.getMove(decision.move);
+		let targetType = decision.pokemon.getTargetData(move).hit;
+
 		let target;
-		if ((move.target !== 'randomNormal') &&
-				this.validTargetLoc(decision.targetLoc, decision.pokemon, move.target)) {
+		if ((targetType !== 'randomNormal') &&
+				this.validTargetLoc(decision.targetLoc, decision.pokemon, targetType)) {
 			if (decision.targetLoc > 0) {
 				target = decision.pokemon.side.foe.active[decision.targetLoc - 1];
 			} else {
@@ -3653,18 +3645,19 @@ Battle = (function () {
 		// when used without an explicit target.
 
 		move = this.getMove(move);
-		if (move.target === 'adjacentAlly') {
+		let targetType = pokemon.getTargetData(move).hit;
+		if (targetType === 'adjacentAlly') {
 			let adjacentAllies = [pokemon.side.active[pokemon.position - 1], pokemon.side.active[pokemon.position + 1]].filter(function (active) {
 				return active && !active.fainted;
 			});
 			if (adjacentAllies.length) return adjacentAllies[Math.floor(Math.random() * adjacentAllies.length)];
 			return pokemon;
 		}
-		if (move.target === 'self' || move.target === 'all' || move.target === 'allySide' || move.target === 'allyTeam' || move.target === 'adjacentAllyOrSelf') {
+		if (targetType === 'self' || targetType === 'all' || targetType === 'allySide' || targetType === 'allyTeam' || targetType === 'adjacentAllyOrSelf') {
 			return pokemon;
 		}
 		if (pokemon.side.active.length > 2) {
-			if (move.target === 'adjacentFoe' || move.target === 'normal' || move.target === 'randomNormal') {
+			if (targetType === 'adjacentFoe' || targetType === 'normal' || targetType === 'randomNormal') {
 				let foeActives = pokemon.side.foe.active;
 				let frontPosition = foeActives.length - 1 - pokemon.position;
 				let adjacentFoes = foeActives.slice(frontPosition < 1 ? 0 : frontPosition - 1, frontPosition + 2).filter(function (active) {

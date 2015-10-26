@@ -102,10 +102,12 @@ exports.BattleScripts = {
 			return true;
 		}
 
-		let targets = pokemon.getMoveTargets(move, target);
+		let targetData = pokemon.getTargetData(move);
+
 		let extraPP = 0;
-		for (let i = 0; i < targets.length; i++) {
-			let ppDrop = this.singleEvent('DeductPP', targets[i].getAbility(), targets[i].abilityData, targets[i], pokemon, move);
+		let ppTargets = pokemon.getMoveTargets(move, target, targetData.pp);
+		for (let i = 0; i < ppTargets.length; i++) {
+			let ppDrop = this.singleEvent('DeductPP', ppTargets[i].getAbility(), ppTargets[i].abilityData, ppTargets[i], pokemon, move);
 			if (ppDrop !== true) {
 				extraPP += ppDrop || 0;
 			}
@@ -124,11 +126,14 @@ exports.BattleScripts = {
 			move.ignoreImmunity = (move.category === 'Status');
 		}
 
+		let targetType = targetData.hit;
+		let targets = pokemon.getMoveTargets(move, target, targetType);
+
 		let damage = false;
-		if (move.target === 'all' || move.target === 'foeSide' || move.target === 'allySide' || move.target === 'allyTeam') {
+		if (targetType === 'all' || targetType === 'foeSide' || targetType === 'allySide' || targetType === 'allyTeam') {
 			damage = this.tryMoveHit(target, pokemon, move);
 			if (damage || damage === 0 || damage === undefined) moveResult = true;
-		} else if (move.target === 'allAdjacent' || move.target === 'allAdjacentFoes') {
+		} else if (targetType === 'allAdjacent' || targetType === 'allAdjacentFoes') {
 			if (move.selfdestruct) {
 				this.faint(pokemon, pokemon, move);
 			}
@@ -149,7 +154,7 @@ exports.BattleScripts = {
 			target = targets[0];
 			let lacksTarget = target.fainted;
 			if (!lacksTarget) {
-				if (move.target === 'adjacentFoe' || move.target === 'adjacentAlly' || move.target === 'normal' || move.target === 'randomNormal') {
+				if (targetType === 'adjacentFoe' || targetType === 'adjacentAlly' || targetType === 'normal' || targetType === 'randomNormal') {
 					lacksTarget = !this.isAdjacent(target, pokemon);
 				}
 			}
