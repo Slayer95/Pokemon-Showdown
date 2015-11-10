@@ -226,7 +226,6 @@ BattlePokemon = (function () {
 					id: move.id,
 					pp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
 					maxpp: (move.noPPBoosts ? move.pp : move.pp * 8 / 5),
-					target: this.getTargetData(move.id).hit,
 					disabled: false,
 					used: false
 				});
@@ -633,7 +632,7 @@ BattlePokemon = (function () {
 				id: move.id,
 				pp: move.pp,
 				maxpp: move.maxpp,
-				target: move.target,
+				target: this.getTargetData(move.id).hit,
 				disabled: move.disabled
 			});
 		}
@@ -774,7 +773,7 @@ BattlePokemon = (function () {
 				id: moveData.id,
 				pp: moveData.maxpp === 1 ? 1 : 5,
 				maxpp: this.battle.gen >= 5 ? (moveData.maxpp === 1 ? 1 : 5) : moveData.maxpp,
-				target: moveData.target,
+				target: this.getTargetData(moveData.id).hit,
 				disabled: false,
 				used: false,
 				virtual: true
