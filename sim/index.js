@@ -18,7 +18,7 @@ const Battle = require('./battle');
 const Side = require('./side');
 const Pokemon = require('./pokemon');
 
-let battleProtoCache = new Map();
+global.battleProtoCache = new Map();
 exports.construct = function (format, rated, send, prng) {
 	format = Dex.getFormat(format);
 	const mod = format.mod || 'base';
