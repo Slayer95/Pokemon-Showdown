@@ -2467,10 +2467,7 @@ exports.commands = {
 				global.Tournaments = require('./tournaments');
 				Tournaments.tournaments = runningTournaments;
 				return this.sendReply("Tournaments have been hot-patched.");
-			} else if (target === 'battles') {
-				Rooms.SimulatorProcess.respawn();
-				return this.sendReply("Battles have been hotpatched. Any battles started after now will use the new code; however, in-progress battles will continue to use the old code.");
-			} else if (target === 'formats') {
+			} else if (target === 'battles' || target === 'formats') {
 				// uncache the sim/dex.js dependency tree
 				Chat.uncacheTree('./sim/dex');
 				// reload sim/dex.js
@@ -2478,9 +2475,14 @@ exports.commands = {
 				// rebuild the formats list
 				delete Rooms.global.formatList;
 				// respawn validator processes
+				/*
 				TeamValidator.PM.respawn();
+				//*/
+				global.battleProtoCache.clear();
 				// respawn simulator processes
+				/*
 				Rooms.SimulatorProcess.respawn();
+				//*/
 				// broadcast the new formats list to clients
 				Rooms.global.send(Rooms.global.formatListText);
 

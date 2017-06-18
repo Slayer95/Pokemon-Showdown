@@ -27,6 +27,7 @@ const TIMER_COOLDOWN = 20 * 1000;
 
 global.Config = require('./config/config');
 
+const FakeProcess = require('./fake-process');
 const ProcessManager = require('./process-manager');
 
 class SimulatorManager extends ProcessManager {
@@ -45,9 +46,15 @@ class SimulatorManager extends ProcessManager {
 
 const SimulatorProcess = new SimulatorManager({
 	execFile: __filename,
-	maxProcesses: global.Config ? Config.simulatorprocesses : 1,
+	maxProcesses: 1, // But fake!
 	isChatBased: false,
 });
+
+const BattleEngineFakeProcess = new FakeProcess.FakeProcessWrapper(SimulatorProcess);
+SimulatorProcess.processes.push(BattleEngineFakeProcess);
+SimulatorProcess.spawn = function () {};
+
+global.battleEngineFakeProcess = BattleEngineFakeProcess;
 
 class BattlePlayer {
 	constructor(user, game, slot) {
@@ -672,7 +679,7 @@ exports.RoomBattle = Battle;
 exports.SimulatorManager = SimulatorManager;
 exports.SimulatorProcess = SimulatorProcess;
 
-if (process.send && module === process.mainModule) {
+if (process.send && module === process.mainModule || (() => true)()) {
 	// This is a child process!
 
 	global.Chat = require('./chat');
@@ -693,7 +700,7 @@ if (process.send && module === process.mainModule) {
 
 	// Receive and process a message sent using Simulator.prototype.send in
 	// another process.
-	process.on('message', message => {
+	battleEngineFakeProcess.client.on('message', message => {
 		//console.log('CHILD MESSAGE RECV: "' + message + '"');
 		let nlIndex = message.indexOf("\n");
 		let more = '';
@@ -736,9 +743,9 @@ if (process.send && module === process.mainModule) {
 						message: message,
 					}) === 'lockdown') {
 						let ministack = Chat.escapeHTML(err.stack).split("\n").slice(0, 2).join("<br />");
-						process.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>A BATTLE PROCESS HAS CRASHED:</b> ' + ministack + '</div>');
+						battleEngineFakeProcess.client.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>A BATTLE PROCESS HAS CRASHED:</b> ' + ministack + '</div>');
 					} else {
-						process.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>The battle crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
+						battleEngineFakeProcess.client.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>The battle crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
 					}
 				}
 			}
@@ -789,9 +796,9 @@ if (process.send && module === process.mainModule) {
 		}
 	});
 
-	process.on('disconnect', () => {
+	/*process.on('disconnect', () => {
 		process.exit();
-	});
+	});*/
 } else {
 	// Create the initial set of simulator processes.
 	SimulatorProcess.spawn();
@@ -801,5 +808,5 @@ if (process.send && module === process.mainModule) {
 // Battle.prototype.receive in simulator.js (in another process).
 function sendBattleMessage(type, data) {
 	if (Array.isArray(data)) data = data.join("\n");
-	process.send(this.id + "\n" + type + "\n" + data);
+	battleEngineFakeProcess.client.send(this.id + "\n" + type + "\n" + data);
 }
