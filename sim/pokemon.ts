@@ -29,7 +29,7 @@ interface RequestMoveSlot {
 	disabledSource?: string;
 }
 
-interface RequestPokemonData {
+export interface RequestPokemonData {
 	moves: RequestMoveSlot[];
 	maybeDisabled?: boolean;
 	trapped?: boolean;
@@ -37,6 +37,11 @@ interface RequestPokemonData {
 	canMegaEvo?: boolean;
 	canUltraBurst?: boolean;
 	canZMove?: ({move: string, target: string} | null)[];
+}
+
+export interface RequestSubMoveSlot {
+	move: string;
+	target: string;
 }
 
 export class Pokemon {

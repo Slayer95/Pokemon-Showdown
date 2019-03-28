@@ -5,6 +5,8 @@ type Pokemon = import('./../sim/pokemon').Pokemon
 type Side = import('./../sim/side').Side
 type Validator = import('./../sim/team-validator').Validator
 
+import {RequestPokemonData} from '../sim/pokemon';
+
 type PageTable = import('./../server/chat').PageTable
 type ChatCommands = import('./../server/chat').ChatCommands
 type ChatFilter = import('./../server/chat').ChatFilter
@@ -792,7 +794,7 @@ interface ModdedBattlePokemon {
 	boostBy?: (this: Pokemon, boost: SparseBoostsTable) => boolean | number
 	calculateStat?: (this: Pokemon, statName: StatNameExceptHP, boost: number, modifier?: number) => number
 	getActionSpeed?: (this: Pokemon) => number
-	getRequestData?: (this: Pokemon) => {moves: {move: string, id: string, target?: string, disabled?: boolean}[], maybeDisabled?: boolean, trapped?: boolean, maybeTrapped?: boolean, canMegaEvo?: boolean, canUltraBurst?: boolean, canZMove?: AnyObject | null}
+	getRequestData?: (this: Pokemon) => RequestPokemonData
 	getStat?: (this: Pokemon, statName: StatNameExceptHP, unboosted?: boolean, unmodified?: boolean, fastReturn?: boolean) => number
 	getWeight?: (this: Pokemon) => number
 	hasAbility?: (this: Pokemon, ability: string | string[]) => boolean

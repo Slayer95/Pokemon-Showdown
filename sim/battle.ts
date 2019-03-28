@@ -3103,7 +3103,7 @@ export class Battle extends Dex.ModdedDex {
 		throw new UnimplementedError('canUltraBurst');
 	}
 
-	canZMove(pokemon: Pokemon): ({move: string, target: string} | null)[] | void {
+	canZMove(pokemon: Pokemon): (RequestSubMoveSlot | null)[] | void {
 		throw new UnimplementedError('canZMove');
 	}
 
