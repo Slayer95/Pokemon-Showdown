@@ -750,7 +750,7 @@ interface BattleScriptsData {
 	calcRecoilDamage?: (this: Battle, damageDealt: number, move: Move) => number
 	canMegaEvo?: (this: Battle, pokemon: Pokemon) => string | undefined | null
 	canUltraBurst?: (this: Battle, pokemon: Pokemon) => string | null
-	canZMove?: (this: Battle, pokemon: Pokemon) => (AnyObject | null)[] | void
+	canZMove?: (this: Battle, pokemon: Pokemon) => ({move: string, target: string} | null)[] | void
 	forceSwitch?: (this: Battle, damage: SpreadMoveDamage, targets: SpreadMoveTargets, source: Pokemon, move: ActiveMove, moveData: ActiveMove, isSecondary?: boolean, isSelf?: boolean) => SpreadMoveDamage
 	getActiveZMove?: (this: Battle, move: Move, pokemon: Pokemon) => ActiveMove
 	getSpreadDamage?: (this: Battle, damage: SpreadMoveDamage, targets: SpreadMoveTargets, source: Pokemon, move: ActiveMove, moveData: ActiveMove, isSecondary?: boolean, isSelf?: boolean) => SpreadMoveDamage

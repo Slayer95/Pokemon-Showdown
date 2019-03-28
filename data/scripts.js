@@ -1104,7 +1104,7 @@ let BattleScripts = {
 		if (!item.zMove) return;
 		if (item.zMoveUser && !item.zMoveUser.includes(pokemon.template.species)) return;
 		let atLeastOne = false;
-		/**@type {AnyObject?[]} */
+		/**@type {({move: string, target: string} | null)[]} */
 		let zMoves = [];
 		for (const moveSlot of pokemon.moveSlots) {
 			if (moveSlot.pp <= 0) {
