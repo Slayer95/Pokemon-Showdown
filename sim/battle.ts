@@ -76,6 +76,7 @@ export class Battle extends Dex.ModdedDex {
 	activeMove: ActiveMove | null;
 	activePokemon: Pokemon | null;
 	activeTarget: Pokemon | null;
+	activeMoveHit: MoveHitData | null;
 
 	lastMove: Move | null;
 	lastMoveLine: number;
@@ -3129,39 +3130,39 @@ export class Battle extends Dex.ModdedDex {
 		throw new UnimplementedError('getZMove');
 	}
 
-	hitStepAccuracy(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): boolean[] {
+	hitStepAccuracy(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): boolean[] {
 		throw new UnimplementedError('hitStepAccuracy');
 	}
 
-	hitStepBreakProtect(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): undefined {
+	hitStepBreakProtect(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): undefined {
 		throw new UnimplementedError('hitStepBreakProtect');
 	}
 
-	hitStepMoveHitLoop(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): SpreadMoveDamage {
+	hitStepMoveHitLoop(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): SpreadMoveDamage {
 		throw new UnimplementedError('hitStepMoveHitLoop');
 	}
 
-	hitStepPowderImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): boolean[] {
+	hitStepPowderImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): boolean[] {
 		throw new UnimplementedError('hitStepPowderImmunity');
 	}
 
-	hitStepPranksterImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): boolean[] {
+	hitStepPranksterImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): boolean[] {
 		throw new UnimplementedError('hitStepPranksterImmunity');
 	}
 
-	hitStepStealBoosts(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): undefined {
+	hitStepStealBoosts(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): undefined {
 		throw new UnimplementedError('hitStepStealBoosts');
 	}
 
-	hitStepTryHitEvent(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): (boolean | '')[] {
+	hitStepTryHitEvent(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): (boolean | '')[] {
 		throw new UnimplementedError('hitStepTryHitEvent');
 	}
 
-	hitStepTryImmunityEvent(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): boolean[] {
+	hitStepTryImmunityEvent(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): boolean[] {
 		throw new UnimplementedError('hitStepTryImmunityEvent ');
 	}
 
-	hitStepTypeImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove): boolean[] {
+	hitStepTypeImmunity(targets: Pokemon[], pokemon: Pokemon, move: ActiveMove, spreadHitData: MoveHitData[]): boolean[] {
 		throw new UnimplementedError('hitStepTypeImmunity');
 	}
 

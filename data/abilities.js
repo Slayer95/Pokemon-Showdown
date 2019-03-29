@@ -131,7 +131,7 @@ let BattleAbilities = {
 		shortDesc: "If this Pokemon (not its substitute) takes a critical hit, its Attack is raised 12 stages.",
 		onHit(target, source, move) {
 			if (!target.hp) return;
-			if (move && move.effectType === 'Move' && move.crit) {
+			if (move && move.effectType === 'Move' && this.activeMoveHit.crit) {
 				target.setBoost({atk: 6});
 				this.add('-setboost', target, 'atk', 12, '[from] ability: Anger Point');
 			}
@@ -892,7 +892,7 @@ let BattleAbilities = {
 	"filter": {
 		shortDesc: "This Pokemon receives 3/4 damage from supereffective attacks.",
 		onSourceModifyDamage(damage, source, target, move) {
-			if (move.typeMod > 0) {
+			if (this.activeMoveHit.typeMod > 0) {
 				this.debug('Filter neutralize');
 				return this.chainModify(0.75);
 			}
@@ -2048,7 +2048,7 @@ let BattleAbilities = {
 			}
 		},
 		onBasePower(basePower, pokemon, target, move) {
-			if (move.multihitType === 'parentalbond' && move.hit > 1) return this.chainModify(0.25);
+			if (move.multihitType === 'parentalbond' && this.activeMoveHit.multiIndex > 1) return this.chainModify(0.25);
 		},
 		rating: 2,
 		num: 152,
@@ -2140,7 +2140,7 @@ let BattleAbilities = {
 	"neuroforce": {
 		shortDesc: "This Pokemon's attacks that are super effective against the target do 1.25x damage.",
 		onModifyDamage(damage, source, target, move) {
-			if (move && move.typeMod > 0) {
+			if (move && this.activeMoveHit.typeMod > 0) {
 				return this.chainModify([0x1400, 0x1000]);
 			}
 		},
@@ -2282,10 +2282,10 @@ let BattleAbilities = {
 		},
 		onBasePowerPriority: 8,
 		onBasePower(basePower, pokemon, target, move) {
-			if (move.multihitType === 'parentalbond' && move.hit > 1) return this.chainModify(0.25);
+			if (move.multihitType === 'parentalbond' && this.activeMoveHit.multiIndex > 1) return this.chainModify(0.25);
 		},
 		onSourceModifySecondaries(secondaries, target, source, move) {
-			if (move.multihitType === 'parentalbond' && move.id === 'secretpower' && move.hit < 2) {
+			if (move.multihitType === 'parentalbond' && move.id === 'secretpower' && this.activeMoveHit.multiIndex < 2) {
 				// hack to prevent accidentally suppressing King's Rock/Razor Fang
 				return secondaries.filter(effect => effect.volatileStatus === 'flinch');
 			}
@@ -2522,7 +2522,7 @@ let BattleAbilities = {
 		desc: "This Pokemon receives 3/4 damage from supereffective attacks. Moongeist Beam, Sunsteel Strike, and the Mold Breaker, Teravolt, and Turboblaze Abilities cannot ignore this Ability.",
 		shortDesc: "This Pokemon receives 3/4 damage from supereffective attacks.",
 		onSourceModifyDamage(damage, source, target, move) {
-			if (move.typeMod > 0) {
+			if (this.activeMoveHit.typeMod > 0) {
 				this.debug('Prism Armor neutralize');
 				return this.chainModify(0.75);
 			}
@@ -3109,7 +3109,7 @@ let BattleAbilities = {
 	"sniper": {
 		shortDesc: "If this Pokemon strikes with a critical hit, the damage is multiplied by 1.5.",
 		onModifyDamage(damage, source, target, move) {
-			if (move.crit) {
+			if (this.activeMoveHit.crit) {
 				this.debug('Sniper boost');
 				return this.chainModify(1.5);
 			}
@@ -3169,7 +3169,7 @@ let BattleAbilities = {
 	"solidrock": {
 		shortDesc: "This Pokemon receives 3/4 damage from supereffective attacks.",
 		onSourceModifyDamage(damage, source, target, move) {
-			if (move.typeMod > 0) {
+			if (this.activeMoveHit.typeMod > 0) {
 				this.debug('Solid Rock neutralize');
 				return this.chainModify(0.75);
 			}
@@ -3642,7 +3642,7 @@ let BattleAbilities = {
 	"tintedlens": {
 		shortDesc: "This Pokemon's attacks that are not very effective on a target deal double damage.",
 		onModifyDamage(damage, source, target, move) {
-			if (move.typeMod < 0) {
+			if (this.activeMoveHit.typeMod < 0) {
 				this.debug('Tinted Lens boost');
 				return this.chainModify(2);
 			}

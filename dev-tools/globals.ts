@@ -159,6 +159,12 @@ interface SecondaryEffect {
 	onHit?: EffectData["onHit"]
 }
 
+interface MoveHitData {
+	crit?: boolean;
+	typeMod?: number;
+	multiIndex?: number;
+}
+
 interface EventMethods {
 	/** Return true to stop the move from being used */
 	beforeMoveCallback?: (this: Battle, pokemon: Pokemon, target: Pokemon | null, move: ActiveMove) => boolean | void

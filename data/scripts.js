@@ -332,10 +332,12 @@ let BattleScripts = {
 			return false;
 		}
 
+		/** @type {MoveHitData}[] */
+		let spreadMoveData = targets.map(() => ({}));
 		let atLeastOneFailure;
 		for (const step of moveSteps) {
 			/** @type {(number | boolean | "" | undefined)[] | undefined} */
-			let hitResults = step.call(this, targets, pokemon, move);
+			let hitResults = step.call(this, targets, pokemon, move, spreadMoveData);
 			if (!hitResults) continue;
 			// @ts-ignore
 			targets = targets.filter((val, i) => hitResults[i] || hitResults[i] === 0);
@@ -351,7 +353,7 @@ let BattleScripts = {
 		if (move.spreadHit) this.attrLastMove('[spread] ' + targets.join(','));
 		return moveResult;
 	},
-	hitStepTryImmunityEvent(targets, pokemon, move) {
+	hitStepTryImmunityEvent(targets, pokemon, move, spreadHitData) {
 		const hitResults = this.runEvent('TryImmunity', targets, pokemon, move);
 		for (const [i, target] of targets.entries()) {
 			if (hitResults[i] === false) {
