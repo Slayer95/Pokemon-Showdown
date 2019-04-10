@@ -5,6 +5,8 @@ const Dex = require('./../.sim-dist/dex');
 const Sim = require('./../.sim-dist');
 
 const cache = new Map();
+const fs = require('fs');
+const path = require('path');
 
 const RULE_FLAGS = {
 	pokemon: 1,
@@ -124,6 +126,13 @@ class TestTools {
 		}
 
 		return new Sim.Battle(battleOptions);
+	}
+
+	loadFolder(filePath) {
+		for (const fileName of fs.readdirSync(filePath)) {
+			if (!fileName.endsWith('.js')) continue;
+			require(path.resolve(filePath, fileName));
+		}
 	}
 }
 
