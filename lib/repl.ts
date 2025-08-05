@@ -70,26 +70,20 @@ export const Repl = new class {
 		const directory = path.dirname(
 			path.resolve(FS.ROOT_PATH, config.replsocketprefix || 'logs/repl', 'app')
 		);
-		let files;
-		try {
-			files = fs.readdirSync(directory);
-		} catch {}
-		if (files) {
-			for (const file of files) {
-				const pathname = path.resolve(directory, file);
-				const stat = fs.statSync(pathname);
-				if (!stat.isSocket()) continue;
-
+		const files = await fs.promises.readdir(directory);
+		for await (const file of files) {
+			const pathname = path.resolve(directory, file);
+			const stat = await fs.promises.stat(pathname);
+			if (!stat.isSocket()) continue;
+			await new Promise((resolve, reject) => {
 				const socket = net.connect(pathname, () => {
 					socket.end();
 					socket.destroy();
+					resolve();
 				}).on('error', () => {
-					try {
-						// race condition?
-						fs.unlinkSync(pathname);
-					} catch {}
+					resolve(fs.promises.unlink(pathname));
 				});
-			}
+			});
 		}
 	}
 
