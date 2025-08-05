@@ -180,10 +180,9 @@ function startValidator() {
 	});
 }
 
-
 setupConfig();
 
-cleanupStale().then(() => {
+void cleanupStale().then(() => {
 	setupGlobals();
 
 	if (Config.crashguard) {
