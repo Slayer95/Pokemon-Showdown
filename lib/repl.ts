@@ -71,7 +71,7 @@ export const Repl = new class {
 			path.resolve(FS.ROOT_PATH, config.replsocketprefix || 'logs/repl', 'app')
 		);
 		const files = await fs.promises.readdir(directory);
-		for await (const file of files) {
+		for (const file of files) {
 			const pathname = path.resolve(directory, file);
 			const stat = await fs.promises.stat(pathname);
 			if (!stat.isSocket()) continue;
