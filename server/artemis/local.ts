@@ -148,30 +148,35 @@ export class LocalClassifier {
 		}
 		return data as Record<string, number>;
 	}
+	static start() {
+		start();
+	}
 }
 
-// main module check necessary since this gets required in other non-parent processes sometimes
-// when that happens we do not want to take over or set up or anything
-if (require.main === module) {
-	// This is a child process!
-	global.Config = Config;
-	global.Monitor = {
-		crashlog(error: Error, source = 'A local Artemis child process', details: AnyObject | null = null) {
-			const repr = JSON.stringify([error.name, error.message, source, details]);
-			process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
-		},
-		slow(text: string) {
-			process.send!(`CALLBACK\nSLOW\n${text}`);
-		},
-	};
-	global.toID = toID;
-	process.on('uncaughtException', err => {
-		if (Config.crashguard) {
-			Monitor.crashlog(err, 'A local Artemis child process');
-		}
-	});
-	// eslint-disable-next-line no-eval
-	Repl.start(`abusemonitor-local-${process.pid}`, cmd => eval(cmd));
-} else if (!process.send) {
-	PM.spawn(global.Config?.subprocesses?.localartemis ?? 1);
+function start() {
+	// main module check necessary since this gets required in other non-parent processes sometimes
+	// when that happens we do not want to take over or set up or anything
+	if (require.main === module) {
+		// This is a child process!
+		global.Config = Config;
+		global.Monitor = {
+			crashlog(error: Error, source = 'A local Artemis child process', details: AnyObject | null = null) {
+				const repr = JSON.stringify([error.name, error.message, source, details]);
+				process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
+			},
+			slow(text: string) {
+				process.send!(`CALLBACK\nSLOW\n${text}`);
+			},
+		};
+		global.toID = toID;
+		process.on('uncaughtException', err => {
+			if (Config.crashguard) {
+				Monitor.crashlog(err, 'A local Artemis child process');
+			}
+		});
+		// eslint-disable-next-line no-eval
+		Repl.start(`abusemonitor-local-${process.pid}`, cmd => eval(cmd));
+	} else if (!process.send) {
+		PM.spawn(global.Config?.subprocesses?.localartemis ?? 1);
+	}
 }

@@ -28,6 +28,10 @@ export class TeamValidatorAsync {
 	static get(this: void, format: string) {
 		return new TeamValidatorAsync(format);
 	}
+
+	static start() {
+		start();
+	}
 }
 
 export const get = TeamValidatorAsync.get;
@@ -71,31 +75,33 @@ export const PM = new QueryProcessManager<{
 	return '1' + packedTeam;
 }, 2 * 60 * 1000);
 
-if (!PM.isParentProcess) {
-	// This is a child process!
-	global.Config = require('./config-loader').Config;
+function start() {
+	if (!PM.isParentProcess) {
+		// This is a child process!
+		global.Config = require('./config-loader').Config;
 
-	global.Monitor = {
-		crashlog(error: Error, source = 'A team validator process', details: AnyObject | null = null) {
-			const repr = JSON.stringify([error.name, error.message, source, details]);
-			process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
-		},
-	};
+		global.Monitor = {
+			crashlog(error: Error, source = 'A team validator process', details: AnyObject | null = null) {
+				const repr = JSON.stringify([error.name, error.message, source, details]);
+				process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
+			},
+		};
 
-	if (Config.crashguard) {
-		process.on('uncaughtException', (err: Error) => {
-			Monitor.crashlog(err, `A team validator process`);
-		});
-		process.on('unhandledRejection', err => {
-			Monitor.crashlog(err as any || {}, 'A team validator process Promise');
-		});
+		if (Config.crashguard) {
+			process.on('uncaughtException', (err: Error) => {
+				Monitor.crashlog(err, `A team validator process`);
+			});
+			process.on('unhandledRejection', err => {
+				Monitor.crashlog(err as any || {}, 'A team validator process Promise');
+			});
+		}
+
+		global.Dex = require('../sim/dex').Dex.includeData();
+		global.Teams = require('../sim/teams').Teams;
+
+		// eslint-disable-next-line no-eval
+		require('../lib/repl').Repl.start(`team-validator-${process.pid}`, (cmd: string) => eval(cmd));
+	} else {
+		PM.spawn(global.Config?.subprocesses?.validator ?? 1);
 	}
-
-	global.Dex = require('../sim/dex').Dex.includeData();
-	global.Teams = require('../sim/teams').Teams;
-
-	// eslint-disable-next-line no-eval
-	require('../lib/repl').Repl.start(`team-validator-${process.pid}`, (cmd: string) => eval(cmd));
-} else {
-	PM.spawn(global.Config?.subprocesses?.validator ?? 1);
 }

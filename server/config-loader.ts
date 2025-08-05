@@ -94,6 +94,19 @@ export function load(invalidate = false) {
 			);
 		}
 	}
+	if (!config.subprocesses) {
+		for (const processType of processTypes) {
+			if ((`${processType}processes` in config) && !(processType in config.subprocesses)) {
+				reportError(
+					`You are using a deprecated version of subprocesses specification in config.\n` +
+					`Support for this will be removed soon.\n` +
+					`Please ensure that you update your config.js to the new format (see config-example.js, line 80).\n`
+				);
+				config.subprocesses ??= {};
+				config.subprocesses[processType] = config[`${processType}processes`];
+			}
+		}
+	}
 
 	cacheGroupData(config);
 	return config;

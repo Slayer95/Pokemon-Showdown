@@ -1360,47 +1360,49 @@ export const PM = new ProcessManager.StreamProcessManager(module, () => new Room
 	}
 });
 
-if (!PM.isParentProcess) {
-	// This is a child process!
-	try {
-		require('source-map-support').install();
-	} catch {}
-	global.Config = require('./config-loader').Config;
-	global.Dex = require('../sim/dex').Dex;
-	global.Monitor = {
-		crashlog(error: Error, source = 'A simulator process', details: AnyObject | null = null) {
-			const repr = JSON.stringify([error.name, error.message, source, details]);
-			process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
-		},
-		slow(text: string) {
-			process.send!(`CALLBACK\nSLOW\n${text}`);
-		},
-	};
-	global.__version = { head: '' };
-	try {
-		const head = execSync('git rev-parse HEAD', {
-			stdio: ['ignore', 'pipe', 'ignore'],
-		});
-		const merge = execSync('git merge-base origin/master HEAD', {
-			stdio: ['ignore', 'pipe', 'ignore'],
-		});
-		global.__version.head = `${head}`.trim();
-		const origin = `${merge}`.trim();
-		if (origin !== global.__version.head) global.__version.origin = origin;
-	} catch {}
+export function start() {
+	if (!PM.isParentProcess) {
+		// This is a child process!
+		try {
+			require('source-map-support').install();
+		} catch {}
+		global.Config = require('./config-loader').Config;
+		global.Dex = require('../sim/dex').Dex;
+		global.Monitor = {
+			crashlog(error: Error, source = 'A simulator process', details: AnyObject | null = null) {
+				const repr = JSON.stringify([error.name, error.message, source, details]);
+				process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
+			},
+			slow(text: string) {
+				process.send!(`CALLBACK\nSLOW\n${text}`);
+			},
+		};
+		global.__version = { head: '' };
+		try {
+			const head = execSync('git rev-parse HEAD', {
+				stdio: ['ignore', 'pipe', 'ignore'],
+			});
+			const merge = execSync('git merge-base origin/master HEAD', {
+				stdio: ['ignore', 'pipe', 'ignore'],
+			});
+			global.__version.head = `${head}`.trim();
+			const origin = `${merge}`.trim();
+			if (origin !== global.__version.head) global.__version.origin = origin;
+		} catch {}
 
-	if (Config.crashguard) {
-		// graceful crash - allow current battles to finish before restarting
-		process.on('uncaughtException', err => {
-			Monitor.crashlog(err, 'A simulator process');
-		});
-		process.on('unhandledRejection', err => {
-			Monitor.crashlog(err as any || {}, 'A simulator process Promise');
-		});
+		if (Config.crashguard) {
+			// graceful crash - allow current battles to finish before restarting
+			process.on('uncaughtException', err => {
+				Monitor.crashlog(err, 'A simulator process');
+			});
+			process.on('unhandledRejection', err => {
+				Monitor.crashlog(err as any || {}, 'A simulator process Promise');
+			});
+		}
+
+		// eslint-disable-next-line no-eval
+		Repl.start(`sim-${process.pid}`, cmd => eval(cmd));
+	} else {
+		PM.spawn(global.Config?.subprocesses?.simulator ?? 1);
 	}
-
-	// eslint-disable-next-line no-eval
-	Repl.start(`sim-${process.pid}`, cmd => eval(cmd));
-} else {
-	PM.spawn(global.Config?.subprocesses?.simulator ?? 1);
 }

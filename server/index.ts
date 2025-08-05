@@ -71,21 +71,37 @@ try {
 
 import { FS, Repl } from '../lib';
 
-/*********************************************************
- * Load the config
- * This is in a function because swc runs `import` before any code,
- * and many of our imports require the `Config` global to be set up.
- *********************************************************/
+function cleanupStale() {
+	return Repl.cleanup();
+}
+
 function setupConfig() {
+	/*********************************************************
+	 * Load the config
+	 * Note that `import` declarations are run before any other code,
+	 * and many of our imports require the `Config` global to be set up.
+	 *********************************************************/
 	const ConfigLoader = require('./config-loader');
 	global.Config = ConfigLoader.Config;
 
+	// Config loader reports errors using Monitor
 	const { Monitor } = require('./monitor');
 	global.Monitor = Monitor;
 	global.__version = { head: '' };
 	void Monitor.version().then((hash: any) => {
 		global.__version.tree = hash;
 	});
+
+	// Dex is needed just to grab toID
+	const { Dex } = require('../sim/dex');
+	global.Dex = Dex;
+	global.toID = Dex.toID;
+
+	// Monitor reports errors on Rooms
+	const { Rooms } = require('./rooms');
+	global.Rooms = Rooms;
+	// We initialize the global room here because roomlogs.ts needs the Rooms global
+	Rooms.global = new Rooms.GlobalRoomState();
 
 	if (Config.watchconfig) {
 		FS('config/config.js').onModify(() => {
@@ -102,15 +118,7 @@ function setupConfig() {
 	}
 }
 
-/*********************************************************
- * Set up most of our globals
- *********************************************************/
-
 function setupGlobals() {
-	const { Dex } = require('../sim/dex');
-	global.Dex = Dex;
-	global.toID = Dex.toID;
-
 	const { Teams } = require('../sim/teams');
 	global.Teams = Teams;
 
@@ -129,11 +137,6 @@ function setupGlobals() {
 	const { Punishments } = require('./punishments');
 	global.Punishments = Punishments;
 
-	const { Rooms } = require('./rooms');
-	global.Rooms = Rooms;
-	// We initialize the global room here because roomlogs.ts needs the Rooms global
-	Rooms.global = new Rooms.GlobalRoomState();
-
 	const Verifier = require('./verifier');
 	global.Verifier = Verifier;
 
@@ -143,41 +146,12 @@ function setupGlobals() {
 	const { IPTools } = require('./ip-tools');
 	global.IPTools = IPTools;
 	void IPTools.loadHostsAndRanges();
-}
 
-function cleanupStale() {
-	return Repl.cleanup();
-}
+	const { Sockets } = require('./sockets');
+	global.Sockets = Sockets;
 
-function startNetwork() {
-	/*********************************************************
-	 * Start networking processes to be connected to
-	 *********************************************************/
-	return import('./sockets.js').then(socketsModule => {
-		global.Sockets = socketsModule.default.Sockets;
-		if (require.main === module) {
-			// Launch the server directly when app.js is the main module. Otherwise,
-			// in the case of app.js being imported as a module (e.g. unit tests),
-			// postpone launching until app.listen() is called.
-			let port;
-			for (const arg of process.argv) {
-				if (/^[0-9]+$/.test(arg)) {
-					port = parseInt(arg);
-					break;
-				}
-			}
-			Sockets.listen(port);
-		}
-	});
-}
-
-function startValidator() {
-	/*********************************************************
-	 * Set up our last global
-	 *********************************************************/
-	return import('./team-validator-async.js').then(validatorModule => {
-		global.TeamValidatorAsync = validatorModule.default.TeamValidatorAsync;
-	});
+	const { TeamValidatorAsync } = require('./team-validator-async');
+	global.TeamValidatorAsync = TeamValidatorAsync;
 }
 
 setupConfig();
@@ -195,9 +169,15 @@ void cleanupStale().then(() => {
 			Monitor.crashlog(err as any, 'A main process Promise');
 		});
 	}
-
-	return Promise.all([startNetwork(), startValidator()]);
 }).then(() => {
+	Rooms.global.start();
+	Sockets.start();
+	Verifier.start();
+	TeamValidatorAsync.start();
+	Chat.start();
+
+	require('./artemis').start();
+
 	/*********************************************************
 	 * Start up the REPL server
 	 *********************************************************/

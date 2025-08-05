@@ -32,13 +32,15 @@ export function verify(data: string, signature: string): Promise<boolean> {
 	return PM.query({ data, signature });
 }
 
-if (!PM.isParentProcess) {
-	// This is a child process!
-	global.Config = require('./config-loader').Config;
+export function start() {
+	if (!PM.isParentProcess) {
+		// This is a child process!
+		global.Config = require('./config-loader').Config;
 
-	const Repl = require('../lib/repl').Repl;
-	// eslint-disable-next-line no-eval
-	Repl.start('verifier', (cmd: string) => eval(cmd));
-} else {
-	PM.spawn(global.Config?.subprocesses?.verifier ?? 1);
+		const Repl = require('../lib/repl').Repl;
+		// eslint-disable-next-line no-eval
+		Repl.start('verifier', (cmd: string) => eval(cmd));
+	} else {
+		PM.spawn(global.Config?.subprocesses?.verifier ?? 1);
+	}
 }

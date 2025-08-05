@@ -2648,6 +2648,10 @@ export const Chat = new class {
 	resolvePage(pageid: string, user: User, connection: Connection) {
 		return (new PageContext({ pageid, user, connection, language: user.language! })).resolve();
 	}
+
+	start() {
+		start();
+	}
 };
 
 // backwards compatibility; don't actually use these
@@ -2706,26 +2710,31 @@ export interface Monitor {
 	monitor?: MonitorHandler;
 }
 
-// explicitly check this so it doesn't happen in other child processes
-if (!process.send) {
-	Chat.database.spawn(global.Config?.subprocesses?.chatdb ?? 1);
-	Chat.databaseReadyPromise = Chat.prepareDatabase();
-	// we need to make sure it is explicitly JUST the child of the original parent db process
-	// no other child processes
-} else if (process.mainModule === module) {
-	global.Monitor = {
-		crashlog(error: Error, source = 'A chat child process', details: AnyObject | null = null) {
-			const repr = JSON.stringify([error.name, error.message, source, details]);
-			process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
-		},
-	} as any;
-	process.on('uncaughtException', err => {
-		Monitor.crashlog(err, 'A chat database process');
-	});
-	process.on('unhandledRejection', err => {
-		Monitor.crashlog(err as Error, 'A chat database process');
-	});
-	global.Config = require('./config-loader').Config;
-	// eslint-disable-next-line no-eval
-	Repl.start('chat-db', cmd => eval(cmd));
+function start() {
+	// explicitly check this so it doesn't happen in other child processes
+	if (!process.send) {
+		Chat.database.spawn(global.Config?.subprocesses?.chatdb ?? 1);
+		Chat.databaseReadyPromise = Chat.prepareDatabase();
+		// we need to make sure it is explicitly JUST the child of the original parent db process
+		// no other child processes
+	} else if (process.mainModule === module) {
+		global.Monitor = {
+			crashlog(error: Error, source = 'A chat child process', details: AnyObject | null = null) {
+				const repr = JSON.stringify([error.name, error.message, source, details]);
+				process.send!(`THROW\n@!!@${repr}\n${error.stack}`);
+			},
+		} as any;
+		process.on('uncaughtException', err => {
+			Monitor.crashlog(err, 'A chat database process');
+		});
+		process.on('unhandledRejection', err => {
+			Monitor.crashlog(err as Error, 'A chat database process');
+		});
+		global.Config = require('./config-loader').Config;
+		// eslint-disable-next-line no-eval
+		Repl.start('chat-db', cmd => eval(cmd));
+	}
+
+	Chat.PrivateMessages.start();
+	FriendsDatabase.start();
 }
