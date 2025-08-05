@@ -61,10 +61,8 @@ export const Repl = new class {
 	 * Delete old sockets in the REPL directory (presumably from a crashed
 	 * previous launch of PS).
 	 *
-	 * Does everything synchronously, so that the directory is guaranteed
-	 * clean and ready for new REPL sockets by the time this function returns.
 	 */
-	cleanup() {
+	async cleanup() {
 		const config = typeof Config !== 'undefined' ? Config : {};
 		if (!config.repl) return;
 

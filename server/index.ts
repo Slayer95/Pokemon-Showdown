@@ -72,11 +72,11 @@ try {
 import { FS, Repl } from '../lib';
 
 /*********************************************************
- * Set up most of our globals
+ * Load the config
  * This is in a function because swc runs `import` before any code,
  * and many of our imports require the `Config` global to be set up.
  *********************************************************/
-function setupGlobals() {
+function setupConfig() {
 	const ConfigLoader = require('./config-loader');
 	global.Config = ConfigLoader.Config;
 
@@ -86,7 +86,6 @@ function setupGlobals() {
 	void Monitor.version().then((hash: any) => {
 		global.__version.tree = hash;
 	});
-	Repl.cleanup();
 
 	if (Config.watchconfig) {
 		FS('config/config.js').onModify(() => {
@@ -101,7 +100,13 @@ function setupGlobals() {
 			}
 		});
 	}
+}
 
+/*********************************************************
+ * Set up most of our globals
+ *********************************************************/
+
+function setupGlobals() {
 	const { Dex } = require('../sim/dex');
 	global.Dex = Dex;
 	global.toID = Dex.toID;
@@ -139,69 +144,80 @@ function setupGlobals() {
 	global.IPTools = IPTools;
 	void IPTools.loadHostsAndRanges();
 }
-setupGlobals();
 
-if (Config.crashguard) {
-	// graceful crash - allow current battles to finish before restarting
-	process.on('uncaughtException', (err: Error) => {
-		Monitor.crashlog(err, 'The main process');
-	});
-
-	process.on('unhandledRejection', err => {
-		Monitor.crashlog(err as any, 'A main process Promise');
-	});
+function cleanupStale() {
+	return Repl.cleanup();
 }
 
-/*********************************************************
- * Start networking processes to be connected to
- *********************************************************/
-
-const { Sockets } = require('./sockets');
-global.Sockets = Sockets;
-
-export function listen(port: number, bindAddress: string, workerCount: number) {
-	Sockets.listen(port, bindAddress, workerCount);
-}
-
-if (require.main === module) {
-	// Launch the server directly when app.js is the main module. Otherwise,
-	// in the case of app.js being imported as a module (e.g. unit tests),
-	// postpone launching until app.listen() is called.
-	let port;
-	for (const arg of process.argv) {
-		if (/^[0-9]+$/.test(arg)) {
-			port = parseInt(arg);
-			break;
+function startNetwork() {
+	/*********************************************************
+	 * Start networking processes to be connected to
+	 *********************************************************/
+	return import('./sockets.js').then(socketsModule => {
+		global.Sockets = socketsModule.default.Sockets;
+		if (require.main === module) {
+			// Launch the server directly when app.js is the main module. Otherwise,
+			// in the case of app.js being imported as a module (e.g. unit tests),
+			// postpone launching until app.listen() is called.
+			let port;
+			for (const arg of process.argv) {
+				if (/^[0-9]+$/.test(arg)) {
+					port = parseInt(arg);
+					break;
+				}
+			}
+			Sockets.listen(port);
 		}
-	}
-	Sockets.listen(port);
-}
-
-/*********************************************************
- * Set up our last global
- *********************************************************/
-
-const { TeamValidatorAsync } = require('./team-validator-async');
-global.TeamValidatorAsync = TeamValidatorAsync;
-
-/*********************************************************
- * Start up the REPL server
- *********************************************************/
-
-// eslint-disable-next-line no-eval
-Repl.start('app', cmd => eval(cmd));
-
-/*********************************************************
- * Fully initialized, run startup hook
- *********************************************************/
-
-if (Config.startuphook) {
-	process.nextTick(Config.startuphook);
-}
-
-if (Config.ofemain) {
-	// Create a heapdump if the process runs out of memory.
-	global.nodeOomHeapdump = (require as any)('node-oom-heapdump')({
-		addTimestamp: true,
 	});
 }
+
+function startValidator() {
+	/*********************************************************
+	 * Set up our last global
+	 *********************************************************/
+	return import('./team-validator-async.js').then(validatorModule => {
+		global.TeamValidatorAsync = validatorModule.default.TeamValidatorAsync;
+	});
+}
+
+
+setupConfig();
+
+cleanupStale().then(() => {
+	setupGlobals();
+
+	if (Config.crashguard) {
+		// graceful crash - allow current battles to finish before restarting
+		process.on('uncaughtException', (err: Error) => {
+			Monitor.crashlog(err, 'The main process');
+		});
+
+		process.on('unhandledRejection', err => {
+			Monitor.crashlog(err as any, 'A main process Promise');
+		});
+	}
+
+	return Promise.all([startNetwork(), startValidator()]);
+}).then(() => {
+	/*********************************************************
+	 * Start up the REPL server
+	 *********************************************************/
+
+	// eslint-disable-next-line no-eval
+	Repl.start('app', cmd => eval(cmd));
+
+	/*********************************************************
+	 * Fully initialized, run startup hook
+	 *********************************************************/
+
+	if (Config.startuphook) {
+		process.nextTick(Config.startuphook);
+	}
+
+	if (Config.ofemain) {
+		// Create a heapdump if the process runs out of memory.
+		global.nodeOomHeapdump = (require as any)('node-oom-heapdump')({
+			addTimestamp: true,
+		});
+	}
+});
