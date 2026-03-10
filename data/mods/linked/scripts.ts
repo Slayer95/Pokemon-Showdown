@@ -130,6 +130,8 @@ export const Scripts: ModdedBattleScriptsData = {
 						choice: 'move', priority: action.priority, speed: action.speed, pokemon: action.pokemon,
 						targetLoc, moveid: linkedMoves[i].id, move: linkedMoves[i], mega: action.mega,
 						order: action.order, fractionalPriority: action.fractionalPriority, originalTarget: action.originalTarget,
+						// @ts-expect-error modded
+						sorted: i === 1,
 					};
 					this.queue.unshift(pseudoAction);
 				}
@@ -348,7 +350,8 @@ export const Scripts: ModdedBattleScriptsData = {
 
 		const nextAction = this.queue.peek();
 		if (this.gen >= 8 &&
-			(nextAction?.choice === 'move' || nextAction?.choice === 'runDynamax') && nextAction?.pokemon !== action.pokemon) {
+			// @ts-expect-error modded
+			(nextAction?.choice === 'move' || nextAction?.choice === 'runDynamax') && !nextAction?.sorted) {
 			// In gen 8, speed is updated dynamically so update the queue's speed properties and sort it.
 			this.updateSpeed();
 			for (const queueAction of this.queue.list) {
