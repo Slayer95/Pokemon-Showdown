@@ -14,6 +14,8 @@ export interface RuleTableBuildContext {
 	dex: ModdedDex;
 }
 
+type NamedBasicEffectFragment = Omit<WithRequired<Readonly<BasicEffect>, 'name'>, 'effectType'>;
+
 interface ValidatorRuleFields {
 	/** List of rule names. */
 	ruleset?: string[];
@@ -120,15 +122,11 @@ interface TaggedRuleFields extends RuleFields {
 };
 
 interface TaggedFormatFields extends FormatFields {
-	effectType: 'Format';
-
 	/**
 	 * A format can be used as a rule, but without an associated value.
 	 */
 	onValidateRule?: (this: RuleTableBuildContext) => string | void;
 };
-
-type NamedBasicEffectFragment = Omit<WithRequired<Readonly<BasicEffect>, 'name'>, 'effectType'>;
 
 export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {};
 export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {};
