@@ -4,7 +4,7 @@ type Mutable<T> = {
 	-readonly [P in keyof T]: T[P];
 };
 
-type WithRequired<T, K extends keyof T> = Partial<T> & Pick<T, K>;
+type WithRequired<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
 
 type Battle = import('./battle').Battle;
 type BattleQueue = import('./battle-queue').BattleQueue;
