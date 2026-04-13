@@ -141,8 +141,8 @@ type FormatDataVariantMap = {
 export type FormatEffectType = keyof FormatDataVariantMap;
 export type RulesetEffectType = Exclude<FormatEffectType, 'Format'>;
 type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
-export type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
-type GeneralizedRuleData = FormatDataVariant[RulesetEffectType];
+export type GeneralizedFormatData = FormatDataVariant<FormatEffectType>;
+type GeneralizedRuleData = FormatDataVariant<RulesetEffectType>;
 
 export type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
 export type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
