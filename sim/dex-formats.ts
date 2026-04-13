@@ -545,6 +545,7 @@ export class RuleTable extends Map<string, string> {
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class Format extends BasicEffect {
 	readonly mod: string;
 	/**
@@ -602,6 +603,7 @@ export class Format extends BasicEffect {
 	}
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface Format extends Readonly<BasicEffect>, Readonly<FormatFields> {}
 
 /** merges format lists from config/formats and config/custom-formats */
