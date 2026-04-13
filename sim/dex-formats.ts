@@ -628,25 +628,16 @@ export class Format extends BasicEffect implements Readonly<BasicEffect>, RuleEv
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
 
-	declare readonly onModifySpeciesPriority?: number;
-	declare readonly onModifySpecies?: (
-		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
-	) => Species | void;
-	declare readonly onBattleStart?: (this: Battle) => void;
-	declare readonly onTeamPreview?: (this: Battle) => void;
-	declare readonly onChooseTeam?: (
-		this: Battle, positions: number[], pokemon: Pokemon[], autoChoose?: boolean
-	) => number[] | string | void;
-
-	declare readonly section?: string;
-	declare readonly column?: number;
-
-	declare readonly onModifySpeciesPriority?: RuleEventMethods['onModifySpeciesPriority'];
-	declare readonly onModifySpecies?: RuleEventMethods['onModifySpecies'];
 	declare readonly onBegin?: RuleEventMethods['onBegin'];
 	declare readonly onBattleStart?: RuleEventMethods['onBattleStart'];
 	declare readonly onTeamPreview?: RuleEventMethods['onTeamPreview'];
 	declare readonly onChooseTeam?: RuleEventMethods['onChooseTeam'];
+
+	declare readonly onModifySpeciesPriority?: RuleEventMethods['onModifySpeciesPriority'];
+	declare readonly onModifySpecies?: RuleEventMethods['onModifySpecies'];
+
+	declare readonly section?: string;
+	declare readonly column?: number;
 
 	// OMs
 	getEvoFamily?: (this: Format, speciesid: string) => ID;
