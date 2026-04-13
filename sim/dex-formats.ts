@@ -162,7 +162,7 @@ export type ModdedGeneralizedRuleData = GeneralizedRuleData | (Omit<
 export type FormatList = (FormatData | { section: string, column?: number })[];
 export interface RulesetTable { [id: IDEntry]: GeneralizedRuleData }
 export interface ModdedRulesetTable { [id: IDEntry]: ModdedGeneralizedRuleData }
-export type Rulesets = (LoadedFormatData | GeneralizedRuleData)[];
+export type RulesetData = (LoadedFormatData | GeneralizedRuleData);
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
