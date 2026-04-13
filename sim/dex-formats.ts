@@ -127,11 +127,11 @@ interface TaggedFormatFields extends FormatFields {
 export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {};
 export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {};
 export interface FormatData extends NamedBasicEffectFragment, Readonly<TaggedFormatFields> {};
-export interface LoadedFormatData extends FormatData, {
-	effectType: 'Format',
-	section: string,
-	column: number,
-	ruleTable: null,
+export interface LoadedFormatData extends FormatData {
+	effectType: 'Format';
+	section: string;
+	column: number;
+	ruleTable: null;
 };
 
 type FormatDataVariantMap = {

@@ -3255,7 +3255,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			}
 			const anySpeciesMods = [...this.ruleTable.keys()].some(ruleName => {
 				const rule = this.dex.data.Rulesets[ruleName];
-				return rule && rule.effectType !== 'ValidatorRule' && rule.onModifySpecies !== undefined;
+				return rule && rule.effectType !== 'ValidatorRule' && rule.onModifySpecies;
 			});
 			if (!anySpeciesMods) throw new Error('This format has no rules that modify base stats.');
 		},
