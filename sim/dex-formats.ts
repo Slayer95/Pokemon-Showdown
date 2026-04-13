@@ -1,6 +1,6 @@
 import { Utils } from '../lib/utils';
 import { assignMissingFields, toID, BasicEffect } from './dex-data';
-import type { EventMethods } from './dex-conditions';
+import type { RuleEventMethods } from './dex-conditions';
 import type { SpeciesData } from './dex-species';
 import { Tags } from '../data/tags';
 
@@ -130,22 +130,25 @@ export interface ValidatorRuleData extends Readonly<BasicEffect>, Readonly<Tagge
 export interface RuleData extends Readonly<BasicEffect>, Readonly<TaggedRuleFields> {}
 export interface FormatData extends Readonly<BasicEffect>, Readonly<TaggedFormatFields> {}
 
-type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
-type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
-
 type FormatDataVariantMap = {
-	Format: FormatData;
-	Rule: RuleData;
-	ValidatorRule: ValidatorRuleData;
+	Format: FormatData,
+	Rule: RuleData,
+	ValidatorRule: ValidatorRuleData,
 };
 
-type FormatEffectType = keyof FormatDataVariantMap;
+export type FormatEffectType = keyof FormatDataVariantMap;
+export type RulesetEffectType = Exclude<FormatEffectType, 'Format'>;
 type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
 type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
+type GeneralizedRuleData = FormatDataVariant[RulesetEffectType];
+
+type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
+type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
+type ModdedGeneralizedRuleData = GeneralizedRuleData | Omit<GeneralizedRuleData, 'name'> & { inherit: true };
 
 export type FormatList = (FormatData | { section: string, column?: number })[];
-export interface FormatDataTable { [id: IDEntry]: RuleData | ValidatorRuleData }
-export interface ModdedFormatDataTable { [id: IDEntry]: ModdedRuleData | ModdedValidatorRuleData }
+export interface RulesetTable { [id: IDEntry]: GeneralizedRuleData }
+export interface ModdedRulesetTable { [id: IDEntry]: ModdedGeneralizedRuleData }
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];

@@ -3,7 +3,7 @@
 import type { Learnset } from "../sim/dex-species";
 
 // The list of formats is stored in config/formats.js
-export const Rulesets: import('../sim/dex-formats').FormatDataTable = {
+export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 
 	// Rulesets
 	///////////////////////////////////////////////////////////////////
@@ -2284,7 +2284,9 @@ export const Rulesets: import('../sim/dex-formats').FormatDataTable = {
 			pokemon.set.evs = allies[2].set.evs;
 			pokemon.set.nature = allies[2].set.nature;
 			pokemon.set.ivs = allies[2].set.ivs;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			pokemon.hpType = (pokemon as any).baseHpType = allies[2].baseHpType;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			pokemon.moveSlots = (pokemon as any).baseMoveSlots = [
 				...allies[3].baseMoveSlots.slice(0, 2), ...allies[4].baseMoveSlots.slice(2),
 			].filter((move, index, moveSlots) => moveSlots.find(othermove => othermove.id === move.id) === move);
@@ -2554,6 +2556,7 @@ export const Rulesets: import('../sim/dex-formats').FormatDataTable = {
 		onFaint(target) {
 			const allies = target.side.pokemon.filter(ally => ally && target !== ally);
 			for (const ally of allies) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				ally.moveSlots = (ally as any).baseMoveSlots = [...ally.baseMoveSlots, target.m.trueLastMoveSlot];
 			}
 		},
@@ -3020,6 +3023,7 @@ export const Rulesets: import('../sim/dex-formats').FormatDataTable = {
 			if (pokemon.species.baseSpecies === impersonation.baseSpecies || pokemon.hp > pokemon.maxhp / 2) return;
 			this.add('-activate', pokemon, 'ability: Power Construct');
 			const abilitySlot = Object.keys(oldPokemon.abilities).find(x => (
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				(oldPokemon.abilities as any)[x] === pokemon.set.ability
 			)) || "0";
 			pokemon.formeChange(impersonation.name, this.effect, true, abilitySlot);

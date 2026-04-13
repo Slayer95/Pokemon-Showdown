@@ -939,6 +939,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 			}
 		},
 		onSwitchIn(pokemon) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			const originalSpecies = this.dex.species.get((pokemon.species as any).originalSpecies);
 			if (originalSpecies.exists && pokemon.m.originalSpecies !== originalSpecies.baseSpecies) {
 				// Place volatiles on the Pokémon to show its mega-evolved condition and details
@@ -950,6 +951,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 			}
 		},
 		onSwitchOut(pokemon) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			const originalSpecies = this.dex.species.get((pokemon.species as any).originalSpecies);
 			if (originalSpecies.exists && pokemon.m.originalSpecies !== originalSpecies.baseSpecies) {
 				this.add('-end', pokemon, originalSpecies.requiredItems?.[0] || originalSpecies.requiredItem || originalSpecies.requiredMove, '[silent]');
@@ -1669,6 +1671,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 					if (forte.self.onHit && move.self?.onHit) {
 						for (const i in forte.self) {
 							if (i.startsWith('onHit')) continue;
+							// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 							(move.self as any)[i] = (forte.self as any)[i];
 						}
 					} else {
@@ -1956,6 +1959,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				if (!abilitySources) continue;
 				let format = this.format;
 				if (!format.getEvoFamily) format = this.dex.formats.get('gen9inheritance');
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				evoFamilyLists.push(abilitySources.map(format.getEvoFamily!));
 			}
 
@@ -2348,7 +2352,9 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 					if (s.volatiles[effect]) return;
 					s.addVolatile(effect);
 					if (s.volatiles[effect]) {
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 						(s.volatiles[effect] as any).id = this.toID(effect);
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 						(s.volatiles[effect] as any).target = s;
 					}
 				};
@@ -2358,7 +2364,9 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 					if (s.volatiles[effect]) return;
 					s.addVolatile(effect);
 					if (s.volatiles[effect]) {
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 						(s.volatiles[effect] as any).id = this.toID(effect);
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 						(s.volatiles[effect] as any).target = s;
 					}
 				};
@@ -3974,6 +3982,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 		banlist: ['Nonexistent'],
 		onModifySpecies(species, target, source, effect) {
 			if (!target) return;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			return { ...species, ...(target.set as any).hc };
 		},
 		onSwitchIn(pokemon) {
