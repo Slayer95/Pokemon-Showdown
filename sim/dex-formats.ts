@@ -6,15 +6,6 @@ import { Tags } from '../data/tags';
 
 const DEFAULT_MOD = 'gen9';
 
-export interface FormatData extends Partial<Format>, EventMethods {
-	name: string;
-}
-
-export type FormatList = (FormatData | { section: string, column?: number })[];
-export type ModdedFormatData = FormatData | Omit<FormatData, 'name'> & { inherit: true };
-export interface FormatDataTable { [id: IDEntry]: FormatData }
-export interface ModdedFormatDataTable { [id: IDEntry]: ModdedFormatData }
-
 type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
 
 type RuleValueType = 'string' | 'integer' | 'positive-integer' | 'identifier';
@@ -30,11 +21,47 @@ type NumberRuleValidator = (this: RuleTableBuildContext, value: number) => (numb
 type StringRuleValidator = (this: RuleTableBuildContext, value: string) => (string | void);
 type IDRuleValidator = (this: RuleTableBuildContext, value: ID) => (ID | void);
 type FlagRuleValidator = (this: RuleTableBuildContext) => void;
-
-type RuleValidator = NumberRuleValidator | StringRuleValidator | IDRuleValidator | FlagRuleValidator;
 */
 
-type RuleValidator = (this: RuleTableBuildContext, value: number | string | undefined) => (number | string | void);
+export type RuleValidator<T> = (this: RuleTableBuildContext, value?: T) => (T | void);
+
+interface TaggedFlagRuleValidatorFields {
+	onValidateRule?: RuleValidator<void>;
+}
+
+interface TaggedNumberRuleValidatorFields {
+	valueType: 'integer' | 'positive-integer';
+	onValidateRule?: RuleValidator<number>;
+}
+
+interface TaggedStringRuleValidatorFields {
+	valueType: 'string',
+	onValidateRule?: RuleValidator<string>;
+}
+
+interface TaggedIDRuleValidatorFields {
+	valueType: 'identifier',
+	onValidateRule?: RuleValidator<ID>;
+}
+
+type RuleValidatorFields = (
+	TaggedFlagRuleValidatorFields |
+	TaggedNumberRuleValidatorFields |
+	TaggedStringRuleValidatorFields |
+	TaggedIDRuleValidatorFields 
+);
+
+export type AnyRuleValidator = RuleValidator<number> | RuleValidator<string> | RuleValidator<ID> | RuleValidator<void>;
+export type AnyRuleValidator2 = (this: RuleTableBuildContext, value: number | string | undefined) => (number | string | void);
+
+export interface FormatData extends Partial<Omit<Format, 'onValidateRule'>>, EventMethods implements RuleValidatorFields {
+	name: string;
+}
+
+export type FormatList = (FormatData | { section: string, column?: number })[];
+export type ModdedFormatData = FormatData | Omit<FormatData, 'name'> & { inherit: true };
+export interface FormatDataTable { [id: IDEntry]: FormatData }
+export interface ModdedFormatDataTable { [id: IDEntry]: ModdedFormatData }
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
@@ -494,7 +521,7 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	 * Only applies to rules, not formats
 	 */
 	declare readonly valueType?: RuleValueType;
-	declare readonly onValidateRule?: RuleValidator;
+	declare readonly onValidateRule?: AnyRuleValidator2;
 	/** ID of rule that can't be combined with this rule */
 	declare readonly mutuallyExclusiveWith?: string;
 
