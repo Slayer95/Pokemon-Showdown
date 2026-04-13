@@ -1752,21 +1752,17 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			const problem = this.checkCanLearn(move, species, lsetData, set);
 			if (!problem) return null;
 			if (move.isZ || move.isMax || this.ruleTable.isRestricted(`move:${move.id}`)) return problem;
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			const sketchMove = (set as any).sketchMove;
 			if (sketchMove && sketchMove !== move.name) {
 				return ` already has ${sketchMove} as a sketched move.\n(${species.name} doesn't learn ${move.name}.)`;
 			}
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			(set as any).sketchMove = move.name;
 			return null;
 		},
 		onValidateTeam(team) {
 			const sketches = new this.dex.Multiset<string>();
 			for (const set of team) {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				if ((set as any).sketchMove) {
-					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 					sketches.add((set as any).sketchMove);
 				}
 			}
@@ -2288,9 +2284,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			pokemon.set.evs = allies[2].set.evs;
 			pokemon.set.nature = allies[2].set.nature;
 			pokemon.set.ivs = allies[2].set.ivs;
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			pokemon.hpType = (pokemon as any).baseHpType = allies[2].baseHpType;
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			pokemon.moveSlots = (pokemon as any).baseMoveSlots = [
 				...allies[3].baseMoveSlots.slice(0, 2), ...allies[4].baseMoveSlots.slice(2),
 			].filter((move, index, moveSlots) => moveSlots.find(othermove => othermove.id === move.id) === move);
@@ -2560,7 +2554,6 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 		onFaint(target) {
 			const allies = target.side.pokemon.filter(ally => ally && target !== ally);
 			for (const ally of allies) {
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				ally.moveSlots = (ally as any).baseMoveSlots = [...ally.baseMoveSlots, target.m.trueLastMoveSlot];
 			}
 		},
@@ -3027,7 +3020,6 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			if (pokemon.species.baseSpecies === impersonation.baseSpecies || pokemon.hp > pokemon.maxhp / 2) return;
 			this.add('-activate', pokemon, 'ability: Power Construct');
 			const abilitySlot = Object.keys(oldPokemon.abilities).find(x => (
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				(oldPokemon.abilities as any)[x] === pokemon.set.ability
 			)) || "0";
 			pokemon.formeChange(impersonation.name, this.effect, true, abilitySlot);
