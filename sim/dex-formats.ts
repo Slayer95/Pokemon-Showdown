@@ -105,7 +105,7 @@ interface TaggedValidatorRuleFields extends ValidatorRuleFields {
 	 */
 	hasValue?: RuleValueType;
 	onValidateRule?: (this: RuleTableBuildContext, value: string) => string | void;
-};
+}
 
 interface TaggedRuleFields extends RuleFields {
 	effectType: 'Rule';
@@ -115,24 +115,24 @@ interface TaggedRuleFields extends RuleFields {
 	 */
 	hasValue?: RuleValueType;
 	onValidateRule?: (this: RuleTableBuildContext, value: string) => string | void;
-};
+}
 
 interface TaggedFormatFields extends FormatFields {
 	/**
 	 * A format can be used as a rule, but without an associated value.
 	 */
 	onValidateRule?: (this: RuleTableBuildContext) => string | void;
-};
+}
 
-export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {};
-export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {};
-export interface FormatData extends NamedBasicEffectFragment, Readonly<TaggedFormatFields> {};
+export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {}
+export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {}
+export interface FormatData extends NamedBasicEffectFragment, Readonly<TaggedFormatFields> {}
 export interface LoadedFormatData extends FormatData {
 	effectType: 'Format';
 	section: string;
 	column: number;
 	ruleTable: RuleTable | null;
-};
+}
 
 type FormatDataVariantMap = {
 	Format: FormatData,
@@ -544,7 +544,7 @@ export class RuleTable extends Map<string, string> {
 	}
 }
 
-export class Format extends BasicEffect implements Readonly<BasicEffect> {
+export class Format extends BasicEffect implements Readonly<BasicEffect>, RuleEventMethods {
 	readonly mod: string;
 	/**
 	 * Name of the team generator algorithm, if this format uses
@@ -553,6 +553,7 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	declare readonly team?: string;
 	override readonly effectType: FormatEffectType;
 	readonly debug: boolean;
+	readonly noLog: boolean;
 	/**
 	 * Whether or not a format will update ladder points if searched
 	 * for using the "Battle!" button.
@@ -581,9 +582,6 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	readonly customRules: string[] | null;
 	/** Table of rule names and banned effects. */
 	ruleTable: RuleTable | null;
-	/** An optional function that runs at the start of a battle. */
-	readonly onBegin?: (this: Battle) => void;
-	readonly noLog: boolean;
 
 	/**
 	 * Only applies to rules, not formats
@@ -601,44 +599,41 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	declare readonly field?: ModdedField;
 	declare readonly actions?: ModdedBattleActions;
 	declare readonly side?: ModdedBattleSide;
+
 	declare readonly challengeShow?: boolean;
 	declare readonly searchShow?: boolean;
+	declare readonly tournamentShow?: boolean;
 	declare readonly bestOfDefault?: boolean;
 	declare readonly teraPreviewDefault?: boolean;
 	declare readonly itemClauseDefault?: boolean;
 	declare readonly threads?: string[];
-	declare readonly tournamentShow?: boolean;
+
 	declare readonly checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
 	declare readonly onChangeSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
 	) => string[] | void;
-	declare readonly onModifySpeciesPriority?: number;
-	declare readonly onModifySpecies?: (
-		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
-	) => Species | void;
-	declare readonly onBattleStart?: (this: Battle) => void;
-	declare readonly onTeamPreview?: (this: Battle) => void;
-	declare readonly onChooseTeam?: (
-		this: Battle, positions: number[], pokemon: Pokemon[], autoChoose?: boolean
-	) => number[] | string | void;
 	declare readonly onValidateSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
 	) => string[] | void;
 	declare readonly onValidateTeam?: (
 		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
 	) => string[] | void;
+
 	declare readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
 	declare readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
 		removeNicknames?: boolean,
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
+
+	declare readonly section?: string;
+	declare readonly column?: number;
+
+	// OMs
 	getEvoFamily?: (this: Format, speciesid: string) => ID;
 	getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
 	getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
-	declare readonly section?: string;
-	declare readonly column?: number;
 
 	constructor(data: AnyObject) {
 		super(data);
