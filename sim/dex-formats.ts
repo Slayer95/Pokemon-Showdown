@@ -8,47 +8,47 @@ const DEFAULT_MOD = 'gen9';
 
 interface ValidatorRuleFields {
 	/** List of rule names. */
-	readonly ruleset: string[];
+	ruleset: string[];
 	/**
 	 * Base list of rule names as specified in "./config/formats.ts".
 	 * Used in a custom format to correctly display the altered ruleset.
 	 */
-	readonly baseRuleset: string[];
+	baseRuleset: string[];
 	/** List of banned effects. */
-	readonly banlist: string[];
+	banlist: string[];
 	/** List of effects that aren't completely banned. */
-	readonly restricted: string[];
+	restricted: string[];
 	/** List of inherited banned effects to override. */
-	readonly unbanlist: string[];
+	unbanlist: string[];
 
-	readonly checkCanLearn?: (
+	checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
-	readonly onChangeSet?: (
+	onChangeSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
 	) => string[] | void;
-	readonly onValidateSet?: (
+	onValidateSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
 	) => string[] | void;
-	readonly onValidateTeam?: (
+	onValidateTeam?: (
 		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
 	) => string[] | void;
 
 	/** ID of rule that can't be combined with this rule */
-	readonly mutuallyExclusiveWith?: string;
+	mutuallyExclusiveWith?: string;
 }
 
 interface RuleFields extends ValidatorRuleFields, RuleEventMethods {}
 
 interface FormatFields extends RuleFields {
-	readonly mod: string;
+	mod: string;
 	/**
 	 * Name of the team generator algorithm, if this format uses
 	 * random/fixed teams. null if players can bring teams.
 	 */
-	readonly team?: string;
-	readonly debug: boolean;
-	readonly noLog: boolean;
+	team?: string;
+	debug: boolean;
+	noLog: boolean;
 
 	/**
 	 * Whether or not a format will update ladder points if searched
@@ -56,79 +56,79 @@ interface FormatFields extends RuleFields {
 	 * (Challenge and tournament games will never update ladder points.)
 	 * (Defaults to `true`.)
 	 */
-	readonly rated: boolean | string;
+	rated: boolean | string;
 	/** Game type. */
-	readonly gameType: GameType;
+	gameType: GameType;
 
-	readonly threads?: string[];
+	threads?: string[];
 
 	/** Overrides for battle scripts */
-	readonly battle?: ModdedBattleScriptsData;
-	readonly pokemon?: ModdedBattlePokemon;
-	readonly queue?: ModdedBattleQueue;
-	readonly field?: ModdedField;
-	readonly actions?: ModdedBattleActions;
-	readonly side?: ModdedBattleSide;
+	battle?: ModdedBattleScriptsData;
+	pokemon?: ModdedBattlePokemon;
+	queue?: ModdedBattleQueue;
+	field?: ModdedField;
+	actions?: ModdedBattleActions;
+	side?: ModdedBattleSide;
 
 	/** Flags for the formats list */
-	readonly challengeShow?: boolean;
-	readonly searchShow?: boolean;
-	readonly tournamentShow?: boolean;
-	readonly bestOfDefault?: boolean;
-	readonly teraPreviewDefault?: boolean;
-	readonly itemClauseDefault?: boolean;
+	challengeShow?: boolean;
+	searchShow?: boolean;
+	tournamentShow?: boolean;
+	bestOfDefault?: boolean;
+	teraPreviewDefault?: boolean;
+	itemClauseDefault?: boolean;
 
 	/** Validator overrides */
-	readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
-	readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
+	validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
+	validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
 		removeNicknames?: boolean,
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
 
 	// OMs
-	readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
-	readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
-	readonly getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
+	getEvoFamily?: (this: Format, speciesid: string) => ID;
+	getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
 }
 
 interface TaggedValidatorRuleFields extends ValidatorRuleFields {
-	readonly effectType: 'ValidatorRule';
+	effectType: 'ValidatorRule';
 
 	/**
 	 * Only applies to rules, not formats
 	 */
-	readonly hasValue?: boolean | 'integer' | 'positive-integer';
-	readonly onValidateRule?: (
+	hasValue?: boolean | 'integer' | 'positive-integer';
+	onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
 	) => string | void;
 };
 
 interface TaggedRuleFields extends RuleFields {
-	readonly effectType: 'Rule';
+	effectType: 'Rule';
 
 	/**
 	 * Only applies to rules, not formats
 	 */
-	readonly hasValue?: boolean | 'integer' | 'positive-integer';
-	readonly onValidateRule?: (
+	hasValue?: boolean | 'integer' | 'positive-integer';
+	onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
 	) => string | void;
 };
 
 interface TaggedFormatFields extends FormatFields {
-	readonly effectType: 'Format';
+	effectType: 'Format';
 
 	/**
 	 * A format can be used as a rule, but without an associated value.
 	 */
-	readonly onValidateRule?: (
+	onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }
 	) => string | void;
 };
 
-export interface ValidatorRuleData extends BasicEffect implements Readonly<BasicEffect>, TaggedValidatorRuleFields {}
-export interface RuleData extends BasicEffect implements Readonly<BasicEffect>, TaggedRuleFields {}
-export interface FormatData extends BasicEffect implements Readonly<BasicEffect>, TaggedFormatFields {}
+export interface ValidatorRuleData extends Readonly<BasicEffect>, Readonly<TaggedValidatorRuleFields> {}
+export interface RuleData extends Readonly<BasicEffect>, Readonly<TaggedRuleFields> {}
+export interface FormatData extends Readonly<BasicEffect>, Readonly<TaggedFormatFields> {}
 
 type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
 type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
