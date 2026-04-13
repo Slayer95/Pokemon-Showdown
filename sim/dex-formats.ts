@@ -26,7 +26,8 @@ interface ValidatorRuleFields {
 	/** List of inherited banned effects to override. */
 	unbanlist?: string[];
 
-	onBegin?: (this: Battle) => void;
+	/** Needed in order to print clauses */
+	onBegin?: RuleEventMethods['onBegin'];
 	checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
@@ -193,7 +194,7 @@ export class RuleTable extends Map<string, string> {
 	complexBans: ComplexBan[];
 	complexTeamBans: ComplexTeamBan[];
 	checkCanLearn: [TeamValidator['checkCanLearn'], string] | null;
-	onChooseTeam: [NonNullable<Format['onChooseTeam']>, string] | null;
+	onChooseTeam: [NonNullable<RuleEventMethods['onChooseTeam']>, string] | null;
 	timer: [Partial<GameTimerSettings>, string] | null;
 	tagRules: string[];
 	valueRules: Map<string, string>;
@@ -626,6 +627,16 @@ export class Format extends BasicEffect implements Readonly<BasicEffect>, RuleEv
 		removeNicknames?: boolean,
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
+
+	declare readonly onModifySpeciesPriority?: number;
+	declare readonly onModifySpecies?: (
+		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
+	) => Species | void;
+	declare readonly onBattleStart?: (this: Battle) => void;
+	declare readonly onTeamPreview?: (this: Battle) => void;
+	declare readonly onChooseTeam?: (
+		this: Battle, positions: number[], pokemon: Pokemon[], autoChoose?: boolean
+	) => number[] | string | void;
 
 	declare readonly section?: string;
 	declare readonly column?: number;
