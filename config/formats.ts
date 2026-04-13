@@ -1956,7 +1956,6 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				if (!abilitySources) continue;
 				let format = this.format;
 				if (!format.getEvoFamily) format = this.dex.formats.get('gen9inheritance');
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				evoFamilyLists.push(abilitySources.map(format.getEvoFamily!));
 			}
 
