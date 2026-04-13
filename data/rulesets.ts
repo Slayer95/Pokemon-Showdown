@@ -1752,17 +1752,21 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			const problem = this.checkCanLearn(move, species, lsetData, set);
 			if (!problem) return null;
 			if (move.isZ || move.isMax || this.ruleTable.isRestricted(`move:${move.id}`)) return problem;
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			const sketchMove = (set as any).sketchMove;
 			if (sketchMove && sketchMove !== move.name) {
 				return ` already has ${sketchMove} as a sketched move.\n(${species.name} doesn't learn ${move.name}.)`;
 			}
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			(set as any).sketchMove = move.name;
 			return null;
 		},
 		onValidateTeam(team) {
 			const sketches = new this.dex.Multiset<string>();
 			for (const set of team) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 				if ((set as any).sketchMove) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 					sketches.add((set as any).sketchMove);
 				}
 			}
