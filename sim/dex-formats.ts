@@ -880,6 +880,11 @@ export class DexFormats {
 		return null;
 	}
 
+	filter(filterFn: (format: Format) => boolean): Format[] {
+		this.load();
+		return this.formatsListCache!.filter(filterFn);
+	}
+
 	isPokemonRule(ruleSpec: string) {
 		return (
 			ruleSpec.slice(1).startsWith('pokemontag:') || ruleSpec.slice(1).startsWith('pokemon:') ||

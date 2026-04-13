@@ -640,7 +640,7 @@ function prepareDexsearchValidator(
 	rules: GeneralizedFormatData[],
 	nationalSearch: boolean | null
 ) {
-	const format = Dex.formats.find(format => format.mod === usedMod)?.name || 'gen9ou';
+	const format = Dex.formats.find(f => f.mod === usedMod)?.name || 'gen9ou';
 	const ruleTable = Dex.formats.getRuleTable(Dex.formats.get(format));
 	const additionalRules = [];
 	for (const rule of rules) {
