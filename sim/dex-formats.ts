@@ -130,6 +130,9 @@ export interface ValidatorRuleData extends BasicEffect implements Readonly<Basic
 export interface RuleData extends BasicEffect implements Readonly<BasicEffect>, TaggedRuleFields {}
 export interface FormatData extends BasicEffect implements Readonly<BasicEffect>, TaggedFormatFields {}
 
+type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
+type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
+
 type FormatDataVariantMap = {
 	Format: FormatData;
 	Rule: RuleData;
@@ -140,10 +143,8 @@ type FormatEffectType = keyof FormatDataVariantMap;
 type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
 type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
 
-export type FormatList = (GeneralizedFormatData | { section: string, column?: number })[];
-export type ModdedFormatData = GeneralizedFormatData | Omit<GeneralizedFormatData, 'name'> & { inherit: true };
-export interface FormatDataTable { [id: IDEntry]: GeneralizedFormatData }
-export interface ModdedFormatDataTable { [id: IDEntry]: ModdedFormatData }
+export type FormatList = (FormatData | { section: string, column?: number })[];
+export interface ModdedFormatDataTable { [id: IDEntry]: ModdedRuleData | ModdedValidatorRuleData }
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
