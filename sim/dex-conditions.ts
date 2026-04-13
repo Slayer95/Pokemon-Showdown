@@ -125,7 +125,7 @@ export interface EventMethods {
 	onWeatherModifyDamage?: CommonHandlers['ModifierSourceMove'];
 	onModifyDamagePhase1?: CommonHandlers['ModifierSourceMove'];
 	onModifyDamagePhase2?: CommonHandlers['ModifierSourceMove'];
-	onModifySpecies: (
+	onModifySpecies?: (
 		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
 	) => Species | void;
 	onFoeDamagingHit?: (this: Battle, damage: number, target: Pokemon, source: Pokemon, move: ActiveMove) => void;
