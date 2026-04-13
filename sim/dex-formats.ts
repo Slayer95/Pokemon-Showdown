@@ -35,12 +35,12 @@ interface TaggedNumberRuleValidatorFields {
 }
 
 interface TaggedStringRuleValidatorFields {
-	valueType: 'string',
+	valueType: 'string';
 	onValidateRule?: RuleValidator<string>;
 }
 
 interface TaggedIDRuleValidatorFields {
-	valueType: 'identifier',
+	valueType: 'identifier';
 	onValidateRule?: RuleValidator<ID>;
 }
 
@@ -48,11 +48,13 @@ type RuleValidatorFields = (
 	TaggedFlagRuleValidatorFields |
 	TaggedNumberRuleValidatorFields |
 	TaggedStringRuleValidatorFields |
-	TaggedIDRuleValidatorFields 
+	TaggedIDRuleValidatorFields
 );
 
 export type AnyRuleValidator = RuleValidator<number> | RuleValidator<string> | RuleValidator<ID> | RuleValidator<void>;
-export type AnyRuleValidator2 = (this: RuleTableBuildContext, value: number | string | undefined) => (number | string | void);
+export type AnyRuleValidator2 = (
+	(this: RuleTableBuildContext, value: number | string | undefined) => (number | string | void)
+);
 
 export interface FormatData extends Partial<Omit<Format, 'onValidateRule'>>, EventMethods, RuleValidatorFields {
 	name: string;
