@@ -8,18 +8,18 @@ const DEFAULT_MOD = 'gen9';
 
 interface ValidatorRuleFields {
 	/** List of rule names. */
-	ruleset: string[];
+	ruleset?: string[];
 	/**
 	 * Base list of rule names as specified in "./config/formats.ts".
 	 * Used in a custom format to correctly display the altered ruleset.
 	 */
-	baseRuleset: string[];
+	baseRuleset?: string[];
 	/** List of banned effects. */
-	banlist: string[];
+	banlist?: string[];
 	/** List of effects that aren't completely banned. */
-	restricted: string[];
+	restricted?: string[];
 	/** List of inherited banned effects to override. */
-	unbanlist: string[];
+	unbanlist?: string[];
 
 	checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
@@ -41,14 +41,14 @@ interface ValidatorRuleFields {
 interface RuleFields extends ValidatorRuleFields, RuleEventMethods {}
 
 interface FormatFields extends RuleFields {
-	mod: string;
+	mod?: string;
 	/**
 	 * Name of the team generator algorithm, if this format uses
 	 * random/fixed teams. null if players can bring teams.
 	 */
 	team?: string;
-	debug: boolean;
-	noLog: boolean;
+	debug?: boolean;
+	noLog?: boolean;
 
 	/**
 	 * Whether or not a format will update ladder points if searched
@@ -56,9 +56,9 @@ interface FormatFields extends RuleFields {
 	 * (Challenge and tournament games will never update ladder points.)
 	 * (Defaults to `true`.)
 	 */
-	rated: boolean | string;
+	rated?: boolean | string;
 	/** Game type. */
-	gameType: GameType;
+	gameType?: GameType;
 
 	threads?: string[];
 
@@ -126,9 +126,9 @@ interface TaggedFormatFields extends FormatFields {
 	) => string | void;
 };
 
-export interface ValidatorRuleData extends Readonly<BasicEffect>, Readonly<TaggedValidatorRuleFields> {}
-export interface RuleData extends Readonly<BasicEffect>, Readonly<TaggedRuleFields> {}
-export interface FormatData extends Readonly<BasicEffect>, Readonly<TaggedFormatFields> {}
+export interface ValidatorRuleData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedValidatorRuleFields> {}
+export interface RuleData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedRuleFields> {}
+export interface FormatData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedFormatFields> {}
 
 type FormatDataVariantMap = {
 	Format: FormatData,
@@ -626,7 +626,7 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	constructor(data: AnyObject) {
 		super(data);
 
-		this.mod = Utils.getString(data.mod) || 'gen9';
+		this.mod = Utils.getString(data.mod) || DEFAULT_MOD;
 		this.effectType = Utils.getString(data.effectType) as FormatEffectType || 'Condition';
 		this.debug = !!data.debug;
 		this.rated = (typeof data.rated === 'string' ? data.rated : data.rated !== false);
@@ -757,7 +757,7 @@ export class DexFormats {
 			if (format.bestOfDefault === undefined) format.bestOfDefault = false;
 			if (format.teraPreviewDefault === undefined) format.teraPreviewDefault = false;
 			if (format.itemClauseDefault === undefined) format.itemClauseDefault = false;
-			if (format.mod === undefined) format.mod = 'gen9';
+			if (format.mod === undefined) format.mod = DEFAULT_MOD;
 			if (!this.dex.dexes[format.mod]) throw new Error(`Format "${format.name}" requires nonexistent mod: '${format.mod}'`);
 
 			const ruleset = new Format(format);
