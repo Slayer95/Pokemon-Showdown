@@ -512,7 +512,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 		},
 		onValidateSet(set) {
 			const species = this.dex.species.get(set.species);
-			const type = this.dex.types.get(this.ruleTable.valueRules.get('forcemonotype'));
+			const type = this.dex.types.get(this.ruleTable.valueRules.get('forcemonotype')!);
 			if (!species.types.map(this.toID).includes(type.id)) {
 				return [`${set.species} must have ${type.name} type.`];
 			}
@@ -557,7 +557,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			}
 		},
 		onValidateSet(set) {
-			const type = this.dex.types.get(this.ruleTable.valueRules.get('forceteratype'));
+			const type = this.dex.types.get(this.ruleTable.valueRules.get('forceteratype')!);
 			if (this.toID(set.teraType) !== type.id) {
 				return [`${set.species} must have its Tera Type set to ${type.name}.`];
 			}
@@ -903,7 +903,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 				teravolt: 'moldbreaker',
 				turboblaze: 'moldbreaker',
 			};
-			const num = parseInt(this.ruleTable.valueRules.get('abilityclause'));
+			const num = parseInt(this.ruleTable.valueRules.get('abilityclause')!);
 			for (const set of team) {
 				let ability = this.toID(set.ability);
 				if (!ability) continue;
@@ -3253,8 +3253,11 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 			if (this.ruleTable.adjustLevel) {
 				throw new Error(`This format's rules force Pokemon to be level ${this.ruleTable.adjustLevel}, so they can't be rebalanced.`);
 			}
-			const speciesMods = [...this.ruleTable.keys()].map(r => this.dex.data.Rulesets[r]).filter(r => r?.onModifySpecies);
-			if (!speciesMods.length) throw new Error('This format has no rules that modify base stats.');
+			const anySpeciesMods = [...this.ruleTable.keys()].some(ruleName => {
+				const rule = this.dex.data.Rulesets[ruleName];
+				return rule && rule.effectType !== 'ValidatorRule' && rule.onModifySpecies !== undefined;
+			});
+			if (!anySpeciesMods) throw new Error('This format has no rules that modify base stats.');
 		},
 	},
 };

@@ -127,6 +127,12 @@ interface TaggedFormatFields extends FormatFields {
 export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {};
 export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {};
 export interface FormatData extends NamedBasicEffectFragment, Readonly<TaggedFormatFields> {};
+export interface LoadedFormatData extends FormatData, {
+	effectType: 'Format',
+	section: string,
+	column: number,
+	ruleTable: null,
+};
 
 type FormatDataVariantMap = {
 	Format: FormatData,
@@ -156,6 +162,7 @@ export type ModdedGeneralizedRuleData = GeneralizedRuleData | (Omit<
 export type FormatList = (FormatData | { section: string, column?: number })[];
 export interface RulesetTable { [id: IDEntry]: GeneralizedRuleData }
 export interface ModdedRulesetTable { [id: IDEntry]: ModdedGeneralizedRuleData }
+export type Rulesets = (LoadedFormatData | GeneralizedRuleData)[];
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
