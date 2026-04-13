@@ -54,7 +54,7 @@ type RuleValidatorFields = (
 export type AnyRuleValidator = RuleValidator<number> | RuleValidator<string> | RuleValidator<ID> | RuleValidator<void>;
 export type AnyRuleValidator2 = (this: RuleTableBuildContext, value: number | string | undefined) => (number | string | void);
 
-export interface FormatData extends Partial<Omit<Format, 'onValidateRule'>>, EventMethods implements RuleValidatorFields {
+export interface FormatData extends Partial<Omit<Format, 'onValidateRule'>>, EventMethods, RuleValidatorFields {
 	name: string;
 }
 
