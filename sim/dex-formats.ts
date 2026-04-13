@@ -92,7 +92,7 @@ interface FormatFields extends RuleFields {
 }
 
 interface TaggedValidatorRuleFields extends ValidatorRuleFields {
-	override readonly effectType: 'ValidatorRule';
+	readonly effectType: 'ValidatorRule';
 
 	/**
 	 * Only applies to rules, not formats
@@ -104,7 +104,7 @@ interface TaggedValidatorRuleFields extends ValidatorRuleFields {
 };
 
 interface TaggedRuleFields extends RuleFields {
-	override readonly effectType: 'Rule';
+	readonly effectType: 'Rule';
 
 	/**
 	 * Only applies to rules, not formats
@@ -116,7 +116,7 @@ interface TaggedRuleFields extends RuleFields {
 };
 
 interface TaggedFormatFields extends FormatFields {
-	override readonly effectType: 'Format';
+	readonly effectType: 'Format';
 
 	/**
 	 * A format can be used as a rule, but without an associated value.
