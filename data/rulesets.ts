@@ -564,7 +564,7 @@ export const Rulesets: import('../sim/dex-formats').RulesetTable = {
 		},
 	},
 	forceselect: {
-		effectType: 'ValidatorRule',
+		effectType: 'Rule',
 		name: 'Force Select',
 		desc: `Forces a Pokemon to be on the team and selected at Team Preview. Usage: Force Select = [Pokemon], e.g. "Force Select = Magikarp"`,
 		hasValue: true,

@@ -31,6 +31,7 @@ interface ValidatorRuleFields {
 	/** List of inherited banned effects to override. */
 	unbanlist?: string[];
 
+	onBegin?: (this: Battle) => void;
 	checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
