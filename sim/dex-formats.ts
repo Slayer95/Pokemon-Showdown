@@ -545,25 +545,40 @@ export class RuleTable extends Map<string, string> {
 	}
 }
 
-export class Format extends BasicEffect {
+export class Format extends BasicEffect implements Readonly<BasicEffect>, RuleEventMethods {
 	readonly mod: string;
 	/**
 	 * Name of the team generator algorithm, if this format uses
 	 * random/fixed teams. null if players can bring teams.
 	 */
+	declare readonly team?: string;
 	override readonly effectType: FormatEffectType;
-
+	readonly debug: boolean;
+	readonly noLog: boolean;
+	/**
+	 * Whether or not a format will update ladder points if searched
+	 * for using the "Battle!" button.
+	 * (Challenge and tournament games will never update ladder points.)
+	 * (Defaults to `true`.)
+	 */
+	readonly rated: boolean | string;
 	/** Game type. */
 	readonly gameType: GameType;
 	/** Number of players, based on game type, for convenience */
 	readonly playerCount: 2 | 4;
-
+	/** List of rule names. */
+	readonly ruleset: string[];
 	/**
 	 * Base list of rule names as specified in "./config/formats.ts".
 	 * Used in a custom format to correctly display the altered ruleset.
 	 */
 	readonly baseRuleset: string[];
-
+	/** List of banned effects. */
+	readonly banlist: string[];
+	/** List of effects that aren't completely banned. */
+	readonly restricted: string[];
+	/** List of inherited banned effects to override. */
+	readonly unbanlist: string[];
 	/** List of ruleset and banlist changes in a custom format. */
 	readonly customRules: string[] | null;
 	/** Table of rule names and banned effects. */
@@ -576,9 +591,60 @@ export class Format extends BasicEffect {
 	declare readonly onValidateRule?: (
 		this: RuleTableBuildContext, value: string
 	) => string | void;
+	/** ID of rule that can't be combined with this rule */
+	declare readonly mutuallyExclusiveWith?: string;
+
+	declare readonly battle?: ModdedBattleScriptsData;
+	declare readonly pokemon?: ModdedBattlePokemon;
+	declare readonly queue?: ModdedBattleQueue;
+	declare readonly field?: ModdedField;
+	declare readonly actions?: ModdedBattleActions;
+	declare readonly side?: ModdedBattleSide;
+
+	declare readonly challengeShow?: boolean;
+	declare readonly searchShow?: boolean;
+	declare readonly tournamentShow?: boolean;
+	declare readonly bestOfDefault?: boolean;
+	declare readonly teraPreviewDefault?: boolean;
+	declare readonly itemClauseDefault?: boolean;
+	declare readonly threads?: string[];
+
+	declare readonly checkCanLearn?: (
+		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
+	) => string | null;
+	declare readonly onChangeSet?: (
+		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
+	) => string[] | void;
+	declare readonly onValidateSet?: (
+		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
+	) => string[] | void;
+	declare readonly onValidateTeam?: (
+		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
+	) => string[] | void;
+
+	declare readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
+	declare readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
+		removeNicknames?: boolean,
+		skipSets?: { [name: string]: { [key: string]: boolean } },
+	}) => string[] | void;
+
+	declare readonly onModifySpeciesPriority?: number;
+	declare readonly onModifySpecies?: (
+		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
+	) => Species | void;
+	declare readonly onBattleStart?: (this: Battle) => void;
+	declare readonly onTeamPreview?: (this: Battle) => void;
+	declare readonly onChooseTeam?: (
+		this: Battle, positions: number[], pokemon: Pokemon[], autoChoose?: boolean
+	) => number[] | string | void;
 
 	declare readonly section?: string;
 	declare readonly column?: number;
+
+	// OMs
+	getEvoFamily?: (this: Format, speciesid: string) => ID;
+	getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
 
 	constructor(data: AnyObject) {
 		super(data);
@@ -601,8 +667,6 @@ export class Format extends BasicEffect {
 		assignMissingFields(this, data);
 	}
 }
-
-export interface Format extends Readonly<BasicEffect>, Readonly<FormatFields> {}
 
 /** merges format lists from config/formats and config/custom-formats */
 function mergeFormatLists(main: FormatList, custom: FormatList | undefined): FormatList {
