@@ -144,9 +144,18 @@ type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
 export type GeneralizedFormatData = FormatDataVariant<FormatEffectType>;
 type GeneralizedRuleData = FormatDataVariant<RulesetEffectType>;
 
-export type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
-export type ModdedValidatorRuleData = ValidatorRuleData | Omit<ValidatorRuleData, 'name'> & { inherit: true };
-export type ModdedGeneralizedRuleData = GeneralizedRuleData | Omit<GeneralizedRuleData, 'name'> & { inherit: true };
+export type ModdedRuleData = RuleData | (Omit<
+	Omit<RuleData, 'name'>,
+	'effectType'
+> & { inherit: true });
+export type ModdedValidatorRuleData = ValidatorRuleData | (Omit<
+	Omit<ValidatorRuleData, 'name'>,
+	'effectType'
+> & { inherit: true });
+export type ModdedGeneralizedRuleData = GeneralizedRuleData | (Omit<
+	Omit<GeneralizedRuleData, 'name'>,
+	'effectType'
+> & { inherit: true });
 
 export type FormatList = (FormatData | { section: string, column?: number })[];
 export interface RulesetTable { [id: IDEntry]: GeneralizedRuleData }
