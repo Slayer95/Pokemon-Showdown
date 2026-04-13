@@ -635,7 +635,11 @@ function getRule(target: string) {
 		x => x.toLowerCase().replace(/[^a-z0-9=]+/g, '').split('rule=')[1]), count };
 }
 
-function prepareDexsearchValidator(usedMod: string | undefined, rules: GeneralizedFormatData[], nationalSearch: boolean | null) {
+function prepareDexsearchValidator(
+	usedMod: string | undefined,
+	rules: GeneralizedFormatData[],
+	nationalSearch: boolean | null
+) {
 	const format = Object.entries(Dex.data.Rulesets).find(([a, f]) => f.mod === usedMod)?.[1].name || 'gen9ou';
 	const ruleTable = Dex.formats.getRuleTable(Dex.formats.get(format));
 	const additionalRules = [];

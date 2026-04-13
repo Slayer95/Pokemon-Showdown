@@ -144,6 +144,7 @@ type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
 type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
 
 export type FormatList = (FormatData | { section: string, column?: number })[];
+export interface FormatDataTable { [id: IDEntry]: RuleData | ValidatorRuleData }
 export interface ModdedFormatDataTable { [id: IDEntry]: ModdedRuleData | ModdedValidatorRuleData }
 
 /** rule, source, limit, bans */
