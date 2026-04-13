@@ -131,7 +131,7 @@ export interface LoadedFormatData extends FormatData {
 	effectType: 'Format';
 	section: string;
 	column: number;
-	ruleTable: null;
+	ruleTable: RuleTable | null;
 };
 
 type FormatDataVariantMap = {
@@ -870,6 +870,14 @@ export class DexFormats {
 	all() {
 		this.load();
 		return this.formatsListCache!;
+	}
+
+	find(filterFn: (format: Format) => boolean): Format | null {
+		this.load();
+		for (const format of this.formatsListCache!) {
+			if (filterFn(format)) return format;
+		}
+		return null;
 	}
 
 	isPokemonRule(ruleSpec: string) {

@@ -640,7 +640,7 @@ function prepareDexsearchValidator(
 	rules: GeneralizedFormatData[],
 	nationalSearch: boolean | null
 ) {
-	const format = Object.entries(Dex.data.Rulesets).find(([a, f]) => f.mod === usedMod)?.[1].name || 'gen9ou';
+	const format = Dex.formats.find(format => format.mod === usedMod)?.name || 'gen9ou';
 	const ruleTable = Dex.formats.getRuleTable(Dex.formats.get(format));
 	const additionalRules = [];
 	for (const rule of rules) {
@@ -1320,7 +1320,8 @@ function runDexsearch(target: string, cmd: string, message: string, isTest: bool
 		) {
 			let newSpecies = species;
 			for (const rule of rules) {
-				newSpecies = rule?.onModifySpecies?.call({ dex: mod, clampIntRange: Utils.clampIntRange, toID } as Battle,
+				if (!rule || rule.effectType === 'ValidatorRule') continue;
+				newSpecies = rule.onModifySpecies?.call({ dex: mod, clampIntRange: Utils.clampIntRange, toID } as Battle,
 					newSpecies) || newSpecies;
 			}
 			dex[newSpecies.id] = newSpecies;
