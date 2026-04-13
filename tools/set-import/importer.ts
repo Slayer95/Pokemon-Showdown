@@ -27,11 +27,11 @@ interface IncomingMessage extends NodeJS.ReadableStream {
 
 // eg. 'gen1.json'
 interface GenerationData {
-	[formatid: string]: FormatData;
+	[formatid: string]: GeneralizedFormatData;
 }
 
 // eg. 'gen7balancedhackmons.json'
-interface FormatData {
+interface GeneralizedFormatData {
 	[source: string]: PokemonSets;
 }
 

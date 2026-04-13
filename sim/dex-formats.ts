@@ -6,16 +6,144 @@ import { Tags } from '../data/tags';
 
 const DEFAULT_MOD = 'gen9';
 
-export interface FormatData extends Partial<Format>, EventMethods {
-	name: string;
+interface ValidatorRuleFields {
+	/** List of rule names. */
+	readonly ruleset: string[];
+	/**
+	 * Base list of rule names as specified in "./config/formats.ts".
+	 * Used in a custom format to correctly display the altered ruleset.
+	 */
+	readonly baseRuleset: string[];
+	/** List of banned effects. */
+	readonly banlist: string[];
+	/** List of effects that aren't completely banned. */
+	readonly restricted: string[];
+	/** List of inherited banned effects to override. */
+	readonly unbanlist: string[];
+
+	declare readonly checkCanLearn?: (
+		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
+	) => string | null;
+	declare readonly onChangeSet?: (
+		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
+	) => string[] | void;
+	declare readonly onValidateSet?: (
+		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
+	) => string[] | void;
+	declare readonly onValidateTeam?: (
+		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
+	) => string[] | void;
+
+	/** ID of rule that can't be combined with this rule */
+	declare readonly mutuallyExclusiveWith?: string;
 }
 
-export type FormatList = (FormatData | { section: string, column?: number })[];
-export type ModdedFormatData = FormatData | Omit<FormatData, 'name'> & { inherit: true };
-export interface FormatDataTable { [id: IDEntry]: FormatData }
-export interface ModdedFormatDataTable { [id: IDEntry]: ModdedFormatData }
+interface RuleFields extends ValidatorRuleFields, RuleEventMethods {}
 
-type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
+interface FormatFields extends RuleFields {
+	readonly mod: string;
+	/**
+	 * Name of the team generator algorithm, if this format uses
+	 * random/fixed teams. null if players can bring teams.
+	 */
+	declare readonly team?: string;
+	readonly debug: boolean;
+	readonly noLog: boolean;
+
+	/**
+	 * Whether or not a format will update ladder points if searched
+	 * for using the "Battle!" button.
+	 * (Challenge and tournament games will never update ladder points.)
+	 * (Defaults to `true`.)
+	 */
+	readonly rated: boolean | string;
+	/** Game type. */
+	readonly gameType: GameType;
+
+	declare readonly threads?: string[];
+
+	/** Overrides for battle scripts */
+	declare readonly battle?: ModdedBattleScriptsData;
+	declare readonly pokemon?: ModdedBattlePokemon;
+	declare readonly queue?: ModdedBattleQueue;
+	declare readonly field?: ModdedField;
+	declare readonly actions?: ModdedBattleActions;
+	declare readonly side?: ModdedBattleSide;
+
+	/** Flags for the formats list */
+	declare readonly challengeShow?: boolean;
+	declare readonly searchShow?: boolean;
+	declare readonly tournamentShow?: boolean;
+	declare readonly bestOfDefault?: boolean;
+	declare readonly teraPreviewDefault?: boolean;
+	declare readonly itemClauseDefault?: boolean;
+
+	/** Validator overrides */
+	declare readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
+	declare readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
+		removeNicknames?: boolean,
+		skipSets?: { [name: string]: { [key: string]: boolean } },
+	}) => string[] | void;
+
+	// OMs
+	declare readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
+	declare readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	declare readonly getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
+}
+
+interface TaggedValidatorRuleFields extends ValidatorRuleFields {
+	override readonly effectType: 'ValidatorRule';
+
+	/**
+	 * Only applies to rules, not formats
+	 */
+	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	declare readonly onValidateRule?: (
+		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
+	) => string | void;
+};
+
+interface TaggedRuleFields extends RuleFields {
+	override readonly effectType: 'Rule';
+
+	/**
+	 * Only applies to rules, not formats
+	 */
+	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	declare readonly onValidateRule?: (
+		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
+	) => string | void;
+};
+
+interface TaggedFormatFields extends FormatFields {
+	override readonly effectType: 'Format';
+
+	/**
+	 * A format can be used as a rule, but without an associated value.
+	 */
+	declare readonly onValidateRule?: (
+		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }
+	) => string | void;
+};
+
+export interface ValidatorRuleData extends BasicEffect implements Readonly<BasicEffect>, TaggedValidatorRuleFields {}
+export interface RuleData extends BasicEffect implements Readonly<BasicEffect>, TaggedRuleFields {}
+export interface FormatData extends BasicEffect implements Readonly<BasicEffect>, TaggedFormatFields {}
+
+type FormatDataVariantMap = {
+	Format: FormatData;
+	Rule: RuleData;
+	ValidatorRule: ValidatorRuleData;
+};
+
+type FormatEffectType = keyof FormatDataVariantMap;
+type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
+type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
+
+export type FormatList = (GeneralizedFormatData | { section: string, column?: number })[];
+export type ModdedFormatData = GeneralizedFormatData | Omit<GeneralizedFormatData, 'name'> & { inherit: true };
+export interface FormatDataTable { [id: IDEntry]: GeneralizedFormatData }
+export interface ModdedFormatDataTable { [id: IDEntry]: ModdedFormatData }
 
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
@@ -464,9 +592,6 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	declare readonly checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
-	declare readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
-	declare readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
-	declare readonly getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
 	declare readonly onChangeSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
 	) => string[] | void;
@@ -521,7 +646,7 @@ function mergeFormatLists(main: FormatList, custom: FormatList | undefined): For
 	interface FormatSection {
 		section: string;
 		column?: number;
-		formats: FormatData[];
+		formats: GeneralizedFormatData[];
 	}
 
 	// result that is return and makes the actual list for formats.
@@ -539,8 +664,8 @@ function mergeFormatLists(main: FormatList, custom: FormatList | undefined): For
 		if (element.section) {
 			current = { section: element.section, column: element.column, formats: [] };
 			build.push(current);
-		} else if ((element as FormatData).name) {
-			current.formats.push((element as FormatData));
+		} else if (element.name) {
+			current.formats.push(element);
 		}
 	}
 
@@ -556,8 +681,8 @@ function mergeFormatLists(main: FormatList, custom: FormatList | undefined): For
 					current = { section: element.section, column: element.column, formats: [] };
 					build.push(current);
 				}
-			} else if ((element as FormatData).name) { // otherwise, adds the element to its section.
-				current.formats.push(element as FormatData);
+			} else if (element.name) { // otherwise, adds the element to its section.
+				current.formats.push(element);
 			}
 		}
 	}

@@ -10,7 +10,7 @@
 
 import * as ConfigLoader from '../config-loader';
 import { ProcessManager, Utils } from '../../lib';
-import type { FormatData } from '../../sim/dex-formats';
+import type { GeneralizedFormatData } from '../../sim/dex-formats';
 import { TeamValidator } from '../../sim/team-validator';
 import { Chat } from '../chat';
 
@@ -635,7 +635,7 @@ function getRule(target: string) {
 		x => x.toLowerCase().replace(/[^a-z0-9=]+/g, '').split('rule=')[1]), count };
 }
 
-function prepareDexsearchValidator(usedMod: string | undefined, rules: FormatData[], nationalSearch: boolean | null) {
+function prepareDexsearchValidator(usedMod: string | undefined, rules: GeneralizedFormatData[], nationalSearch: boolean | null) {
 	const format = Object.entries(Dex.data.Rulesets).find(([a, f]) => f.mod === usedMod)?.[1].name || 'gen9ou';
 	const ruleTable = Dex.formats.getRuleTable(Dex.formats.get(format));
 	const additionalRules = [];
@@ -661,7 +661,7 @@ function runDexsearch(target: string, cmd: string, message: string, isTest: bool
 		}
 	}
 	const mod = Dex.mod(usedMod || 'base');
-	const rules: FormatData[] = [];
+	const rules: GeneralizedFormatData[] = [];
 	for (const rule of usedRules) {
 		if (!dexsearchHelpRules.includes(rule))
 			return { error: `${rule} is an unsupported rule, see /dexsearchhelp` };

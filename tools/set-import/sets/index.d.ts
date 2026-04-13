@@ -21,9 +21,9 @@ export declare type DeepPartial<T> = {
 	[P in keyof T]?: T[P] extends Array<infer I> ? Array<DeepPartial<I>> : DeepPartial<T[P]>;
 };
 export interface GenerationData {
-	[formatid: string]: FormatData;
+	[formatid: string]: GeneralizedFormatData;
 }
-export interface FormatData {
+export interface GeneralizedFormatData {
 	[source: string]: {
 		[speciesid: string]: {
 			[name: string]: DeepPartial<PokemonSet>;
@@ -33,5 +33,5 @@ export interface FormatData {
 export type GenerationNum = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type Generation = {num: GenerationNum};
 export declare function forGen(gen: Generation | GenerationNum): Promise<GenerationData> | undefined;
-export declare function forFormat(format: string): Promise<FormatData> | undefined;
+export declare function forFormat(format: string): Promise<GeneralizedFormatData> | undefined;
 export {};
