@@ -126,9 +126,17 @@ interface TaggedFormatFields extends FormatFields {
 	) => string | void;
 };
 
-export interface ValidatorRuleData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedValidatorRuleFields> {}
-export interface RuleData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedRuleFields> {}
-export interface FormatData extends WithRequired<Readonly<BasicEffect>, 'name'>, Readonly<TaggedFormatFields> {}
+export interface ValidatorRuleData
+	extends WithRequired<Readonly<BasicEffect>, 'name'>,
+			Readonly<TaggedValidatorRuleFields> {}
+
+export interface RuleData
+	extends WithRequired<Readonly<BasicEffect>, 'name'>,
+			Readonly<TaggedRuleFields> {}
+
+export interface FormatData
+	extends WithRequired<Readonly<BasicEffect>, 'name'>,
+			Readonly<TaggedFormatFields> {}
 
 type FormatDataVariantMap = {
 	Format: FormatData,
