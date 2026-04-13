@@ -19,11 +19,6 @@ type NamedBasicEffectFragment = Omit<WithRequired<Readonly<BasicEffect>, 'name'>
 interface ValidatorRuleFields {
 	/** List of rule names. */
 	ruleset?: string[];
-	/**
-	 * Base list of rule names as specified in "./config/formats.ts".
-	 * Used in a custom format to correctly display the altered ruleset.
-	 */
-	baseRuleset?: string[];
 	/** List of banned effects. */
 	banlist?: string[];
 	/** List of effects that aren't completely banned. */
@@ -681,7 +676,7 @@ function mergeFormatLists(main: FormatList, custom: FormatList | undefined): For
 	// populates the original sections and formats easily
 	// there should be no repeat sections at this point.
 	for (const element of main) {
-		if (section in element) {
+		if ('section' in element) {
 			current = { section: element.section, column: element.column, formats: [] };
 			build.push(current);
 		} else if (element.name) {
@@ -693,7 +688,7 @@ function mergeFormatLists(main: FormatList, custom: FormatList | undefined): For
 	if (custom !== undefined) {
 		for (const element of custom) {
 			// finds the section and makes it if it doesn't exist.
-			if (section in element) {
+			if ('section' in element) {
 				current = build.find(e => e.section === element.section);
 
 				// if it's new it makes a new entry.
