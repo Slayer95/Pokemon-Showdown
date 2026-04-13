@@ -6,6 +6,14 @@ import { Tags } from '../data/tags';
 
 const DEFAULT_MOD = 'gen9';
 
+export type RuleValueType = boolean | 'integer' | 'positive-integer';
+
+export interface RuleTableBuildContext {
+	format: Format;
+	ruleTable: RuleTable;
+	dex: ModdedDex;
+}
+
 interface ValidatorRuleFields {
 	/** List of rule names. */
 	ruleset?: string[];
@@ -97,10 +105,8 @@ interface TaggedValidatorRuleFields extends ValidatorRuleFields {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	hasValue?: boolean | 'integer' | 'positive-integer';
-	onValidateRule?: (
-		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
-	) => string | void;
+	hasValue?: RuleValueType;
+	onValidateRule?: (this: RuleTableBuildContext, value: string) => string | void;
 };
 
 interface TaggedRuleFields extends RuleFields {
@@ -109,10 +115,8 @@ interface TaggedRuleFields extends RuleFields {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	hasValue?: boolean | 'integer' | 'positive-integer';
-	onValidateRule?: (
-		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
-	) => string | void;
+	hasValue?: RuleValueType;
+	onValidateRule?: (this: RuleTableBuildContext, value: string) => string | void;
 };
 
 interface TaggedFormatFields extends FormatFields {
@@ -121,12 +125,10 @@ interface TaggedFormatFields extends FormatFields {
 	/**
 	 * A format can be used as a rule, but without an associated value.
 	 */
-	onValidateRule?: (
-		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }
-	) => string | void;
+	onValidateRule?: (this: RuleTableBuildContext) => string | void;
 };
 
-type NamedBasicEffectFragment = WithRequired<Readonly<BasicEffect>, 'name'>;
+type NamedBasicEffectFragment = Omit<WithRequired<Readonly<BasicEffect>, 'name'>, 'effectType'>;
 
 export interface ValidatorRuleData extends NamedBasicEffectFragment, Readonly<TaggedValidatorRuleFields> {};
 export interface RuleData extends NamedBasicEffectFragment, Readonly<TaggedRuleFields> {};
@@ -141,7 +143,7 @@ type FormatDataVariantMap = {
 export type FormatEffectType = keyof FormatDataVariantMap;
 export type RulesetEffectType = Exclude<FormatEffectType, 'Format'>;
 type FormatDataVariant<K extends FormatEffectType> = FormatDataVariantMap[K];
-type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
+export type GeneralizedFormatData = FormatDataVariant[FormatEffectType];
 type GeneralizedRuleData = FormatDataVariant[RulesetEffectType];
 
 export type ModdedRuleData = RuleData | Omit<RuleData, 'name'> & { inherit: true };
@@ -576,9 +578,9 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	declare readonly hasValue?: RuleValueType;
 	declare readonly onValidateRule?: (
-		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
+		this: RuleTableBuildContext, value: string
 	) => string | void;
 	/** ID of rule that can't be combined with this rule */
 	declare readonly mutuallyExclusiveWith?: string;
@@ -622,6 +624,9 @@ export class Format extends BasicEffect implements Readonly<BasicEffect> {
 		removeNicknames?: boolean,
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
+	getEvoFamily?: (this: Format, speciesid: string) => ID;
+	getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
 	declare readonly section?: string;
 	declare readonly column?: number;
 
