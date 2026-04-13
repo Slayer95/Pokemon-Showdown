@@ -641,6 +641,13 @@ export class Format extends BasicEffect implements Readonly<BasicEffect>, RuleEv
 	declare readonly section?: string;
 	declare readonly column?: number;
 
+	declare readonly onModifySpeciesPriority?: RuleEventMethods['onModifySpeciesPriority'];
+	declare readonly onModifySpecies?: RuleEventMethods['onModifySpecies'];
+	declare readonly onBegin?: RuleEventMethods['onBegin'];
+	declare readonly onBattleStart?: RuleEventMethods['onBattleStart'];
+	declare readonly onTeamPreview?: RuleEventMethods['onTeamPreview'];
+	declare readonly onChooseTeam?: RuleEventMethods['onChooseTeam'];
+
 	// OMs
 	getEvoFamily?: (this: Format, speciesid: string) => ID;
 	getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
