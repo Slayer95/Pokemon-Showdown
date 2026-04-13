@@ -2127,7 +2127,7 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 		desc: `Doubles-based metagame where both active ally Pok&eacute;mon share abilities and moves.`,
 		mod: 'partnersincrime',
 		defaultGameType: 'doubles',
-		supportedGameTypes: ['doubles'], // though it shouldn't be too difficult to add Multi support
+		supportedGameTypes: ['doubles', 'multi'],
 		searchShow: false,
 		ruleset: ['Standard Doubles', 'Evasion Abilities Clause'],
 		banlist: [
@@ -2153,7 +2153,8 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				}
 			}
 			const BAD_ABILITIES = ['trace', 'imposter', 'neutralizinggas', 'illusion', 'wanderingspirit'];
-			const ally = pokemon.side.active.find(mon => mon && mon !== pokemon && !mon.fainted);
+			const allySide = (pokemon.side.allySide || pokemon.side);
+			const ally = allySide.active.find(mon => mon && mon !== pokemon && !mon.fainted);
 			if (ally && ally.ability !== pokemon.ability) {
 				if (!pokemon.m.innate && !BAD_ABILITIES.includes(this.toID(ally.ability))) {
 					pokemon.m.innate = 'ability:' + ally.ability;
@@ -2175,7 +2176,8 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				pokemon.removeVolatile(pokemon.m.innate);
 				delete pokemon.m.innate;
 			}
-			const ally = pokemon.side.active.find(mon => mon && mon !== pokemon && !mon.fainted);
+			const allySide = (pokemon.side.allySide || pokemon.side);
+			const ally = allySide.active.find(mon => mon && mon !== pokemon && !mon.fainted);
 			if (ally?.m.innate) {
 				ally.removeVolatile(ally.m.innate);
 				delete ally.m.innate;
@@ -2186,7 +2188,8 @@ export const Formats: import('../sim/dex-formats').FormatList = [
 				pokemon.removeVolatile(pokemon.m.innate);
 				delete pokemon.m.innate;
 			}
-			const ally = pokemon.side.active.find(mon => mon && mon !== pokemon && !mon.fainted);
+			const allySide = (pokemon.side.allySide || pokemon.side);
+			const ally = allySide.active.find(mon => mon && mon !== pokemon && !mon.fainted);
 			if (ally?.m.innate) {
 				ally.removeVolatile(ally.m.innate);
 				delete ally.m.innate;
