@@ -21,21 +21,21 @@ interface ValidatorRuleFields {
 	/** List of inherited banned effects to override. */
 	readonly unbanlist: string[];
 
-	declare readonly checkCanLearn?: (
+	readonly checkCanLearn?: (
 		this: TeamValidator, move: Move, species: Species, setSources: PokemonSources, set: PokemonSet
 	) => string | null;
-	declare readonly onChangeSet?: (
+	readonly onChangeSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas?: AnyObject, teamHas?: AnyObject
 	) => string[] | void;
-	declare readonly onValidateSet?: (
+	readonly onValidateSet?: (
 		this: TeamValidator, set: PokemonSet, format: Format, setHas: AnyObject, teamHas: AnyObject
 	) => string[] | void;
-	declare readonly onValidateTeam?: (
+	readonly onValidateTeam?: (
 		this: TeamValidator, team: PokemonSet[], format: Format, teamHas: AnyObject
 	) => string[] | void;
 
 	/** ID of rule that can't be combined with this rule */
-	declare readonly mutuallyExclusiveWith?: string;
+	readonly mutuallyExclusiveWith?: string;
 }
 
 interface RuleFields extends ValidatorRuleFields, RuleEventMethods {}
@@ -46,7 +46,7 @@ interface FormatFields extends RuleFields {
 	 * Name of the team generator algorithm, if this format uses
 	 * random/fixed teams. null if players can bring teams.
 	 */
-	declare readonly team?: string;
+	readonly team?: string;
 	readonly debug: boolean;
 	readonly noLog: boolean;
 
@@ -60,35 +60,35 @@ interface FormatFields extends RuleFields {
 	/** Game type. */
 	readonly gameType: GameType;
 
-	declare readonly threads?: string[];
+	readonly threads?: string[];
 
 	/** Overrides for battle scripts */
-	declare readonly battle?: ModdedBattleScriptsData;
-	declare readonly pokemon?: ModdedBattlePokemon;
-	declare readonly queue?: ModdedBattleQueue;
-	declare readonly field?: ModdedField;
-	declare readonly actions?: ModdedBattleActions;
-	declare readonly side?: ModdedBattleSide;
+	readonly battle?: ModdedBattleScriptsData;
+	readonly pokemon?: ModdedBattlePokemon;
+	readonly queue?: ModdedBattleQueue;
+	readonly field?: ModdedField;
+	readonly actions?: ModdedBattleActions;
+	readonly side?: ModdedBattleSide;
 
 	/** Flags for the formats list */
-	declare readonly challengeShow?: boolean;
-	declare readonly searchShow?: boolean;
-	declare readonly tournamentShow?: boolean;
-	declare readonly bestOfDefault?: boolean;
-	declare readonly teraPreviewDefault?: boolean;
-	declare readonly itemClauseDefault?: boolean;
+	readonly challengeShow?: boolean;
+	readonly searchShow?: boolean;
+	readonly tournamentShow?: boolean;
+	readonly bestOfDefault?: boolean;
+	readonly teraPreviewDefault?: boolean;
+	readonly itemClauseDefault?: boolean;
 
 	/** Validator overrides */
-	declare readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
-	declare readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
+	readonly validateSet?: (this: TeamValidator, set: PokemonSet, teamHas: AnyObject) => string[] | null;
+	readonly validateTeam?: (this: TeamValidator, team: PokemonSet[], options?: {
 		removeNicknames?: boolean,
 		skipSets?: { [name: string]: { [key: string]: boolean } },
 	}) => string[] | void;
 
 	// OMs
-	declare readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
-	declare readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
-	declare readonly getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
+	readonly getEvoFamily?: (this: Format, speciesid: string) => ID;
+	readonly getSharedPower?: (this: Format, pokemon: Pokemon) => Set<string>;
+	readonly getSharedItems?: (this: Format, pokemon: Pokemon) => Set<string>;
 }
 
 interface TaggedValidatorRuleFields extends ValidatorRuleFields {
@@ -97,8 +97,8 @@ interface TaggedValidatorRuleFields extends ValidatorRuleFields {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
-	declare readonly onValidateRule?: (
+	readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	readonly onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
 	) => string | void;
 };
@@ -109,8 +109,8 @@ interface TaggedRuleFields extends RuleFields {
 	/**
 	 * Only applies to rules, not formats
 	 */
-	declare readonly hasValue?: boolean | 'integer' | 'positive-integer';
-	declare readonly onValidateRule?: (
+	readonly hasValue?: boolean | 'integer' | 'positive-integer';
+	readonly onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }, value: string
 	) => string | void;
 };
@@ -121,7 +121,7 @@ interface TaggedFormatFields extends FormatFields {
 	/**
 	 * A format can be used as a rule, but without an associated value.
 	 */
-	declare readonly onValidateRule?: (
+	readonly onValidateRule?: (
 		this: { format: Format, ruleTable: RuleTable, dex: ModdedDex }
 	) => string | void;
 };
