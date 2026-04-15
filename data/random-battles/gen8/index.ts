@@ -246,6 +246,21 @@ export class RandomGen8Teams {
 		this.prng = PRNG.get(prng);
 	}
 
+	static getGenerators() {
+		const generators = (
+			Object.getOwnPropertyNames(this.prototype).filter(
+				prop => (
+					typeof this.prototype[prop] === 'function' &&
+					prop.startsWith(`random`) &&
+					prop.endsWith(`Team`)
+				)
+			)
+		);
+		const _super = Object.getPrototypeOf(this);
+		if (_super !== Function.prototype) return generators.concat(_super.getGenerators());
+		return Array.from(new Set(generators)).sort().map(name => name.slice(0, -4)).filter(Boolean);
+	}
+
 	getTeam(options?: PlayerOptions | null): PokemonSet[] {
 		const generatorName = (
 			typeof this.format.team === 'string' && this.format.team.startsWith('random')
