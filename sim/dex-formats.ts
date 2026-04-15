@@ -377,7 +377,7 @@ export class RuleTable extends Map<string, string> {
 				3
 			);
 		} else {
-			this.pickedTeamSize = Number(this.getRuleValue<string>('pickedteamsize')) || null;
+			this.pickedTeamSize = Number(this.getRuleValue<ID>('pickedteamsize')) || null;
 		}
 
 		if (this.isRuleValue('evlimit', 'auto')) {
@@ -391,7 +391,7 @@ export class RuleTable extends Map<string, string> {
 			// Gen 6 hackmons also has a limit, which is currently implemented
 			// at the appropriate format.
 		} else {
-			this.pickedTeamSize = Number(this.getRuleValue<string>('evlimit')) || null;
+			this.pickedTeamSize = Number(this.getRuleValue<ID>('evlimit')) || null;
 		}
 
 		// sanity checks; these _could_ be inside `value.validate`, but lie here
