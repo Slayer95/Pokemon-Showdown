@@ -3,7 +3,7 @@ import { Utils } from '../../../lib';
 import { PRNG, type PRNGSeed } from '../../../sim/prng';
 import { type RuleTable } from '../../../sim/dex-formats';
 import { Tags } from './../../tags';
-import { Teams } from '../../../sim/teams';
+import { Teams } from '../../../sim/index';
 
 export interface TeamData {
 	typeCount: { [k: string]: number };
@@ -254,6 +254,22 @@ export class RandomTeams {
 		this.cachedPool = undefined;
 		this.cachedSpeciesPool = undefined;
 		this.cachedStatusMoves = this.dex.moves.all().filter(move => move.category === 'Status').map(move => move.id);
+	}
+
+	static getGenerators() {
+		const generators = (
+			Object.getOwnPropertyNames(this.prototype)
+			.filter(
+				prop => (
+					typeof this.prototype[prop] === 'function' &&
+					prop.startsWith(`random`) &&
+					prop.endsWith(`Team`)
+				)
+			)
+		);
+		const _super = Object.getPrototypeOf(this);
+		if (_super !== Function.prototype) return generators.concat(_super.getGenerators());
+		return Array.from(new Set(generators)).sort().map(name => name.slice(0, -4)).filter(Boolean);
 	}
 
 	setSeed(prng?: PRNG | PRNGSeed) {

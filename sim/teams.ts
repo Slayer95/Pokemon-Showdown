@@ -8,6 +8,7 @@
  */
 
 import { Dex, toID } from './dex';
+import { FS } from './../lib/fs';
 import type { PRNG, PRNGSeed } from './prng';
 
 interface ExportOptions {
@@ -117,6 +118,33 @@ export interface PokemonSet {
 }
 
 export const Teams = new class Teams {
+	/**
+	 * List of all valid generator IDs
+	 */
+	readonly validGenerators: Map<string, string[]>;
+
+	constructor() {
+		const generatorEntries = (
+			FS(`${__dirname}/../data/random-battles`).readdirSync()
+		).map(
+			name => name.split('.', 1)[0]
+		).map(
+			generatorID => {
+				try {
+					const TeamGenerator = require(`../data/random-battles/${generatorID}`).default;
+					const generators = TeamGenerator.getGenerators();
+					if (!generators.length) return null;
+					return [generatorID, generators];
+				} catch (err) {
+					if (err.code === 'MODULE_NOT_FOUND') return null;
+					throw err;
+				}
+			}
+		).filter(Boolean);
+
+		this.validGenerators = new Map(generatorEntries);
+	}
+
 	pack(team: PokemonSet[] | null): string {
 		if (!team) return '';
 
@@ -625,26 +653,57 @@ export const Teams = new class Teams {
 		return sets;
 	}
 
-	getGenerator(format: Format | string, seed: PRNG | PRNGSeed | null = null) {
-		let TeamGenerator;
-		format = Dex.formats.get(format);
-		let mod = format.mod;
-		if (format.mod === 'monkeyspaw') mod = 'gen9';
-		const formatID = toID(format);
-		if (mod === 'gen9ssb') {
-			TeamGenerator = require(`../data/mods/gen9ssb/random-teams`).default;
-		} else if (mod === 'afd') {
-			TeamGenerator = require(`../data/mods/afd/random-teams`).default;
-		} else if (formatID.includes('gen9babyrandombattle')) {
-			TeamGenerator = require(`../data/random-battles/gen9baby/teams`).default;
-		} else if (formatID.includes('gen9randombattle') && format.ruleTable?.has('+pokemontag:cap')) {
-			TeamGenerator = require(`../data/random-battles/gen9cap/teams`).default;
-		} else if (formatID.includes('gen9freeforallrandombattle')) {
-			TeamGenerator = require(`../data/random-battles/gen9ffa/teams`).default;
-		} else {
-			TeamGenerator = require(`../data/random-battles/${mod}/teams`).default;
+	getIDForGenericInner(mod: string, team?: string) {
+		if (this.validGenerators.has(mod)) {
+			if (!team) return mod;
+			if (this.validGenerators.get(mod).includes(team)) return mod;
 		}
 
+		let dex: ModdedDex = Dex.mod(mod);
+		while (dex.parentMod) {
+			mod = dex.parentMod;
+			if (this.validGenerators.has(mod)) {
+				if (!team) return mod;
+				if (this.validGenerators.get(mod).includes(team)) return mod;
+			}
+			dex = Dex.mod(mod);
+		}
+
+		return '';
+	}
+
+	getIDForGenericFormat(format: Format) {
+		const result = this.getIDForGenericInner(format.mod, format.team);
+		if (!result) {
+			throw new Error(`Mod "${format.mod}" does not implement "${format.team}Team".`);
+		}
+		return result;
+	}
+
+	getIDForFormat(format: Format) {
+		const formatID = toID(format);
+		if (formatID.includes('gen9babyrandombattle') &&
+			this.validGenerators.get('gen9baby')?.includes(format.team)
+		) {
+			return 'gen9baby';
+		}
+		if (formatID.includes('gen9randombattle') && format.ruleTable?.has('+pokemontag:cap') &&
+			this.validGenerators.get('gen9cap')?.includes(format.team)
+		) {
+			return 'gen9cap';
+		}
+		if (formatID.includes('gen9freeforallrandombattle') &&
+			this.validGenerators.get('gen9ffa')?.includes(format.team)
+		) {
+			return 'gen9ffa';
+		}
+		return this.getIDForGenericFormat(format);
+	}
+
+	getGenerator(format: Format | string, seed: PRNG | PRNGSeed | null = null) {
+		format = Dex.formats.get(format);
+		const generatorID = this.getIDForFormat(format);
+		const TeamGenerator = require(`../data/random-battles/${generatorID}`).default;
 		return new TeamGenerator(format, seed);
 	}
 
