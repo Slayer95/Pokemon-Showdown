@@ -598,8 +598,8 @@ export interface PokemonEventMethods extends EventMethods {
 	onAllyModifyDamagePhase2?: CommonHandlers['ModifierSourceMove'];
 }
 export interface SideEventMethods extends EventMethods {
-	onSideStart?: (this: Battle, target: Side, source: Pokemon, sourceEffect: Effect) => void;
-	onSideRestart?: (this: Battle, target: Side, source: Pokemon, sourceEffect: Effect) => void;
+	onSideStart?: (this: Battle, target: Side, source: Pokemon, sourceEffect?: Effect) => void;
+	onSideRestart?: (this: Battle, target: Side, source: Pokemon, sourceEffect?: Effect) => void;
 	onSideResidual?: (this: Battle, target: Side, source: Pokemon, effect: Effect) => void;
 	onSideEnd?: (this: Battle, target: Side) => void;
 	onSideResidualOrder?: number;
@@ -607,8 +607,8 @@ export interface SideEventMethods extends EventMethods {
 	onSideResidualSubOrder?: number;
 }
 export interface FieldEventMethods extends EventMethods {
-	onFieldStart?: (this: Battle, target: Field, source: Pokemon, sourceEffect: Effect) => void;
-	onFieldRestart?: (this: Battle, target: Field, source: Pokemon, sourceEffect: Effect) => void;
+	onFieldStart?: (this: Battle, target: Field, source: Pokemon, sourceEffect?: Effect) => void;
+	onFieldRestart?: (this: Battle, target: Field, source: Pokemon, sourceEffect?: Effect) => void;
 	onFieldResidual?: (this: Battle, target: Field, source: Pokemon, effect: Effect) => void;
 	onFieldEnd?: (this: Battle, target: Field) => void;
 	onFieldResidualOrder?: number;
@@ -637,10 +637,10 @@ export class Condition extends BasicEffect implements
 	declare readonly onCopy?: (this: Battle, pokemon: Pokemon) => void;
 	declare readonly onEnd?: (this: Battle, target: Pokemon) => void;
 	declare readonly onRestart?: (
-		this: Battle, target: Pokemon, source: Pokemon, sourceEffect: Effect
+		this: Battle, target: Pokemon, source: Pokemon, sourceEffect?: Effect
 	) => boolean | null | void;
 	declare readonly onStart?: (
-		this: Battle, target: Pokemon, source: Pokemon, sourceEffect: Effect
+		this: Battle, target: Pokemon, source: Pokemon, sourceEffect?: Effect
 	) => boolean | null | void;
 	declare readonly onBattleStart?: (this: Battle, pokemon: Pokemon) => void;
 
