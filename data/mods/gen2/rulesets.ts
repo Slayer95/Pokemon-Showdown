@@ -1,6 +1,6 @@
 import type { Learnset } from "../../../sim/dex-species";
 
-export const Rulesets: import('../../../sim/dex-formats').ModdedFormatDataTable = {
+export const Rulesets: import('../../../sim/dex-formats').ModdedRulesetTable = {
 	obtainablemoves: {
 		inherit: true,
 		banlist: [
@@ -48,7 +48,7 @@ export const Rulesets: import('../../../sim/dex-formats').ModdedFormatDataTable 
 	nc2000movelegality: {
 		effectType: 'ValidatorRule',
 		name: 'NC 2000 Move Legality',
-		desc: "Prevents Pok\u00e9mon from having moves that would only be obtainable in Pok\u00e9mon Crystal.",
+		desc: "Prevents Pokemon from having moves that would only be obtainable in Pok&eacute;mon Crystal.",
 		onValidateSet(set) {
 			const illegalCombos: { [speciesid: string]: { [moveid: string]: 'E' | 'L' | 'S' } } = {
 				arbok: { crunch: 'E' },

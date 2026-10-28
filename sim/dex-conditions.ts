@@ -1,5 +1,5 @@
 import { Utils } from '../lib/utils';
-import { assignMissingFields, BasicEffect, toID } from './dex-data';
+import { assignMissingFields, BasicEffect, toID, type ModdedEffectText } from './dex-data';
 import type { SecondaryEffect, MoveEventMethods } from './dex-moves';
 
 /**
@@ -12,12 +12,13 @@ import type { SecondaryEffect, MoveEventMethods } from './dex-moves';
 
 export interface EventMethods {
 	onDamagingHit?: (this: Battle, damage: number, target: Pokemon, source: Pokemon, move: ActiveMove) => void;
-	onEmergencyExit?: (this: Battle, pokemon: Pokemon) => void;
+	onEmergencyExit?: (this: Battle, originalHp: number, pokemon: Pokemon) => void;
 	onAfterEachBoost?: (this: Battle, boost: SparseBoostsTable, target: Pokemon, source: Pokemon, effect: Effect) => void;
 	onAfterHit?: MoveEventMethods['onAfterHit'];
 	onAfterMega?: (this: Battle, pokemon: Pokemon) => void;
 	onAfterSetStatus?: (this: Battle, status: Condition, target: Pokemon, source: Pokemon, effect: Effect) => void;
 	onAfterSubDamage?: MoveEventMethods['onAfterSubDamage'];
+	onAfterEntryHazard?: (this: Battle, pokemon: Pokemon) => void;
 	onAfterSwitchInSelf?: (this: Battle, pokemon: Pokemon) => void;
 	onAfterTerastallization?: (this: Battle, pokemon: Pokemon) => void;
 	onAfterUseItem?: (this: Battle, item: Item, pokemon: Pokemon) => void;
@@ -125,6 +126,9 @@ export interface EventMethods {
 	onWeatherModifyDamage?: CommonHandlers['ModifierSourceMove'];
 	onModifyDamagePhase1?: CommonHandlers['ModifierSourceMove'];
 	onModifyDamagePhase2?: CommonHandlers['ModifierSourceMove'];
+	onModifySpecies?: (
+		this: Battle, species: Species, target?: Pokemon, source?: Pokemon, effect?: Effect
+	) => Species | void;
 	onFoeDamagingHit?: (this: Battle, damage: number, target: Pokemon, source: Pokemon, move: ActiveMove) => void;
 	onFoeAfterEachBoost?: (this: Battle, boost: SparseBoostsTable, target: Pokemon, source: Pokemon) => void;
 	onFoeAfterHit?: MoveEventMethods['onAfterHit'];
@@ -453,6 +457,7 @@ export interface EventMethods {
 	onDragOutPriority?: number;
 	onDisableMovePriority?: number;
 	onEffectivenessPriority?: number;
+	onEntryHazardPriority?: number;
 	onFoeBasePowerPriority?: number;
 	onFoeBeforeMovePriority?: number;
 	onFoeModifyDefPriority?: number;
@@ -472,6 +477,7 @@ export interface EventMethods {
 	onModifySpAPriority?: number;
 	onModifySpDPriority?: number;
 	onModifySpePriority?: number;
+	onModifySpeciesPriority?: number;
 	onModifySTABPriority?: number;
 	onModifyTypePriority?: number;
 	onModifyWeightPriority?: number;
@@ -495,6 +501,7 @@ export interface EventMethods {
 	onTryMovePriority?: number;
 	onTryPrimaryHitPriority?: number;
 	onTypePriority?: number;
+	onWeatherModifyDamagePriority?: number;
 }
 
 export interface PokemonEventMethods extends EventMethods {
@@ -615,6 +622,14 @@ export interface FieldEventMethods extends EventMethods {
 	onFieldResidualPriority?: number;
 	onFieldResidualSubOrder?: number;
 }
+export interface RuleEventMethods extends EventMethods {
+	onBegin?: (this: Battle) => void;
+	onBattleStart?: (this: Battle) => void;
+	onTeamPreview?: (this: Battle) => void;
+	onChooseTeam?: (
+		this: Battle, positions: number[], pokemon: Pokemon[], autoChoose?: boolean
+	) => number[] | string | void;
+}
 export interface PokemonConditionData extends Partial<Condition>, PokemonEventMethods {}
 export interface SideConditionData extends
 	Partial<Omit<Condition, 'onStart' | 'onRestart' | 'onEnd'>>, SideEventMethods {}
@@ -623,7 +638,7 @@ export interface FieldConditionData extends
 
 export type ConditionData = PokemonConditionData | SideConditionData | FieldConditionData;
 
-export type ModdedConditionData = ConditionData & { inherit?: true };
+export type ModdedConditionData = ConditionData & ModdedEffectText & { inherit?: true };
 export interface ConditionDataTable { [id: IDEntry]: ConditionData }
 export interface ModdedConditionDataTable { [id: IDEntry]: ModdedConditionData }
 
