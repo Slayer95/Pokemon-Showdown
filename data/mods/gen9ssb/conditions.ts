@@ -1,4 +1,4 @@
-import { ssbSets } from "./random-teams";
+import { ssbSets } from "./../../random-battles/gen9ssb";
 import { changeSet, getName, enemyStaff } from './scripts';
 import type { ModdedConditionData } from "../../../sim/dex-conditions";
 
@@ -741,7 +741,7 @@ export const Conditions: { [id: IDEntry]: ModdedConditionData & { innateName?: s
 			if (target.illusion) return;
 			if (effect.name === 'Intimidate' && boost.atk) {
 				delete boost.atk;
-				this.add('-fail', target, 'unboost', 'Attack', '[from] ability: Oblivious', `[of] ${target}`);
+				this.add('-fail', target, 'unboost', 'atk', '[from] ability: Oblivious', `[of] ${target}`);
 			}
 		},
 	},
